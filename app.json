@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "knowledgeapp55",
-    "slug": "knowledgeapp55",
-    "version": "1.0.0",
+    "name": "Knowledge App",
+    "slug": "knowledgeapp",
+    "version": "2.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "knowledgeapp55",
@@ -12,11 +12,19 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "backgroundColor": "#ffffff",
+        "foregroundImage": "./assets/images/icon_crp.png"
       },
+      "permissions": [
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.DOWNLOAD_WITHOUT_NOTIFICATION",
+        "android.permission.ACCESS_NETWORK_STATE",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.ACCESS_MEDIA_LOCATION"
+      ],
+      "package": "com.iita.knowledgeapp",
       "predictiveBackGestureEnabled": false
     },
     "web": {
@@ -30,15 +38,56 @@
         {
           "backgroundColor": "#208AEF",
           "android": {
-            "image": "./assets/images/splash-icon.png",
+            "image": "./assets/images/icon.png",
             "imageWidth": 76
           }
         }
-      ]
+      ],
+      "expo-location",
+      "expo-video",
+      [
+        "expo-updates",
+        {
+          "username": "iita"
+        }
+      ],
+      "expo-audio",
+      "expo-web-browser",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "The app accesses your photos to let you share them with your friends."
+        }
+      ],
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "Allow $(PRODUCT_NAME) to access your photos.",
+          "savePhotosPermission": "Allow $(PRODUCT_NAME) to save photos.",
+          "isAccessMediaLocationEnabled": true
+        }
+      ],
+      [
+        "expo-file-system",
+        {
+          "supportsOpeningDocumentsInPlace": true,
+          "enableFileSharing": true
+        }
+      ],
+      "@config-plugins/react-native-blob-util",
+      "expo-sharing",
+      "expo-image",
+      "expo-localization"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "owner": "iita",
+    "extra": {
+      "eas": {
+        "projectId": "1554da32-5090-4cf1-adf6-808a1e98bba1"
+      }
     }
   }
 }
