@@ -1,3 +1,5 @@
+import { useLanguage } from "@/context/LanguageContext";
+import i18n from "@/i18n";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useLocalSearchParams, useNavigation } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
@@ -254,6 +256,7 @@ const NewsContent = () => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const { id: itemId } = useLocalSearchParams();
+  const { language } = useLanguage();
 
   const scrollY = useRef(new Animated.Value(0)).current;
 
@@ -279,11 +282,12 @@ const NewsContent = () => {
         })
         .catch((err) => {
           setIsLoadingNews(false);
+
           if (err?.message) {
             Alert.alert(
-              "Connection Error",
-              "Please check your internet connection and try again.",
-              [{ text: "OK", style: "cancel" }],
+              `${language && i18n.t("connectionError")}`,
+              `${language && i18n.t("internetError")}`,
+              [{ text: `${language && i18n.t("ok")}`, style: "cancel" }],
               { cancelable: false }
             );
           }
@@ -347,7 +351,7 @@ const NewsContent = () => {
       {isLoading ? (
         <View style={styles.loaderWrap}>
           <ActivityIndicator color={COLORS.accent} size="large" />
-          <Text style={styles.loaderText}>Loading article…</Text>
+          <Text style={styles.loaderText}>{language && i18n.t("loading")}</Text>
         </View>
       ) : dataSource.id ? (
         <Animated.ScrollView
@@ -371,7 +375,9 @@ const NewsContent = () => {
             {/* Category / date strip */}
             <View style={styles.metaRow}>
               <View style={styles.categoryChip}>
-                <Text style={styles.categoryChipText}>News</Text>
+                <Text style={styles.categoryChipText}>
+                  {language && i18n.t("news")}
+                </Text>
               </View>
               {date ? (
                 <Text style={styles.metaDate}>{formatDate(date)}</Text>
@@ -400,7 +406,9 @@ const NewsContent = () => {
                   size={16}
                   color={COLORS.accent}
                 />
-                <Text style={styles.shareBtnText}>Share</Text>
+                <Text style={styles.shareBtnText}>
+                  {language && i18n.t("share")}
+                </Text>
               </TouchableOpacity>
             </View>
 
@@ -458,15 +466,20 @@ const NewsContent = () => {
               color={COLORS.textDim}
             />
           </View>
-          <Text style={styles.emptyTitle}>Article not found</Text>
+          <Text style={styles.emptyTitle}>
+            {" "}
+            {language && i18n.t("articleNotFound")}{" "}
+          </Text>
           <Text style={styles.emptySubtitle}>
-            This article may have been removed or is unavailable.
+            {language && i18n.t("articleUnavailable")}
           </Text>
           <TouchableOpacity
             style={styles.emptyBtn}
             onPress={() => navigation.goBack()}
           >
-            <Text style={styles.emptyBtnText}>Go back</Text>
+            <Text style={styles.emptyBtnText}>
+              {language && i18n.t("goback")}
+            </Text>
           </TouchableOpacity>
         </View>
       )}

@@ -72,7 +72,7 @@ const TABS: TabItem[] = [
   { key: "news", labelKey: "news", icon: "newspaper-outline" },
   { key: "publications", labelKey: "publications", icon: "book-outline" },
   { key: "digitaltools", labelKey: "digitalTools", icon: "construct-outline" },
-  { key: "events", labelKey: "events", icon: "calendar-outline" },
+  { key: "events", labelKey: "eventsItem", icon: "calendar-outline" },
   { key: "projects", labelKey: "projects", icon: "briefcase-outline" },
   { key: "videos", labelKey: "videos", icon: "videocam-outline" },
   { key: "pictures", labelKey: "pictures", icon: "images-outline" },

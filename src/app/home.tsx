@@ -120,7 +120,7 @@ export const navItems = [
   },
 
   {
-    titleKey: "events",
+    titleKey: "eventsItem",
     navigationItem: "events",
     emoji: "📅",
     bg: "#9C27B0",
@@ -635,7 +635,7 @@ const HomeScreen = () => {
             {/* Resources Section */}
             <View
               style={{
-                backgroundColor: "#0D0D12",
+                backgroundColor: "#F2F6F7",
                 borderRadius: 16,
                 paddingVertical: 20,
                 paddingHorizontal: 10,
@@ -646,7 +646,7 @@ const HomeScreen = () => {
                 style={{
                   fontWeight: "700",
                   fontSize: 18,
-                  color: "#fff",
+                  color: "#000",
                   marginBottom: 15,
                 }}
               >
@@ -674,7 +674,7 @@ const HomeScreen = () => {
                       style={{
                         justifyContent: "center",
                         alignItems: "center",
-                        backgroundColor: "#23232D",
+                        backgroundColor: "#fff",
                         height: 45,
                         width: 45,
                         borderRadius: 16,
@@ -693,7 +693,7 @@ const HomeScreen = () => {
 
                     <Text
                       style={{
-                        color: "#fff",
+                        color: "#000",
                         fontSize: 10,
                         marginTop: 10,
                         textAlign: "center",

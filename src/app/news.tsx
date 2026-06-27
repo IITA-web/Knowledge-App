@@ -18,6 +18,8 @@
  *     animation — fixed with `pointerEvents` + `opacity` instead.
  */
 
+import { useLanguage } from "@/context/LanguageContext";
+import i18n from "@/i18n";
 import { Ionicons } from "@expo/vector-icons";
 import { router, useNavigation } from "expo-router";
 import moment from "moment";
@@ -130,6 +132,7 @@ const SearchModal: React.FC<SearchModalProps> = ({
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const inputRef = useRef<TextInput>(null);
   const slideAnim = useRef(new Animated.Value(0)).current;
+  const { language } = useLanguage();
 
   useEffect(() => {
     if (visible) {
@@ -277,9 +280,13 @@ const SearchModal: React.FC<SearchModalProps> = ({
             {suggestions.length === 0 && recent.length > 0 && (
               <View style={s.recentSection}>
                 <View style={s.recentHeader}>
-                  <Text style={s.recentLabel}>RECENT</Text>
+                  <Text style={s.recentLabel}>
+                    {language && i18n.t("recent")}
+                  </Text>
                   <TouchableOpacity onPress={() => setRecent([])}>
-                    <Text style={s.clearText}>Clear all</Text>
+                    <Text style={s.clearText}>
+                      {language && i18n.t("clearAll")}
+                    </Text>
                   </TouchableOpacity>
                 </View>
                 {recent.map((r, i) => (
@@ -329,6 +336,7 @@ const FilterSheet: React.FC<FilterSheetProps> = ({
 }) => {
   const insets = useSafeAreaInsets();
   const slideAnim = useRef(new Animated.Value(0)).current;
+  const { language } = useLanguage();
 
   useEffect(() => {
     Animated.spring(slideAnim, {
@@ -366,7 +374,9 @@ const FilterSheet: React.FC<FilterSheetProps> = ({
             {/* Header */}
             <View style={s.sheetHeader}>
               <View>
-                <Text style={s.sheetTitle}>Filter by Topic</Text>
+                <Text style={s.sheetTitle}>
+                  {language && i18n.t("FilterByTopic")}
+                </Text>
                 <Text style={s.sheetSubtitle}>
                   {activeCatId
                     ? CATEGORIES.find((c) => c.id === activeCatId)?.title
@@ -515,6 +525,7 @@ const HeaderBar: React.FC<HeaderProps> = ({
   const activeLabel = activeCatId
     ? CATEGORIES.find((c) => c.id === activeCatId)?.title
     : null;
+  const { language } = useLanguage();
   return (
     <View style={s.header}>
       <TouchableOpacity onPress={onBack} style={s.headerIconBtn}>
@@ -522,13 +533,14 @@ const HeaderBar: React.FC<HeaderProps> = ({
       </TouchableOpacity>
 
       <View style={{ flex: 1 }}>
-        <Text style={s.headerTitle}>News</Text>
+        <Text style={s.headerTitle}>{language && i18n.t("news")}</Text>
         {activeLabel ? (
           <Text style={s.headerSubtitle}>{activeLabel.toUpperCase()}</Text>
         ) : null}
       </View>
 
-      <TouchableOpacity
+      {/* on the web site we can only filter by date and theme -> implement that */}
+      {/* <TouchableOpacity
         onPress={onFilter}
         style={[s.headerIconBtn, activeCatId ? s.headerIconBtnActive : null]}
       >
@@ -538,7 +550,7 @@ const HeaderBar: React.FC<HeaderProps> = ({
           color={activeCatId ? C.accent : C.text}
         />
         {activeCatId ? <View style={s.filterDot} /> : null}
-      </TouchableOpacity>
+      </TouchableOpacity> */}
 
       <TouchableOpacity onPress={onSearch} style={s.headerIconBtn}>
         <Ionicons name="search-outline" size={19} color={C.text} />
@@ -598,6 +610,7 @@ const News: React.FC = () => {
 
   // Ref prevents stale closure in onEndReached
   const loadingMoreRef = useRef(false);
+  const { language } = useLanguage();
 
   // ── Fetch helpers ─────────────────────────────────────────────────────────
   const loadNews = useCallback(
@@ -624,11 +637,15 @@ const News: React.FC = () => {
         setPage(pg);
       } catch (err: any) {
         Alert.alert(
-          "Connection Error",
-          err?.message ?? "Please check your internet connection.",
+          `${language && i18n.t("connectionError")}`,
+
+          err?.message ?? `${language && i18n.t("internetError")}`,
           [
-            { text: "Retry", onPress: () => loadNews(pg, cat, replace) },
-            { text: "Cancel", style: "cancel" },
+            {
+              text: `${language && i18n.t("retry")}`,
+              onPress: () => loadNews(pg, cat, replace),
+            },
+            { text: `${language && i18n.t("cancel")}`, style: "cancel" },
           ]
         );
         Vibration.vibrate();
@@ -675,11 +692,15 @@ const News: React.FC = () => {
         setPage(pg);
       } catch (err: any) {
         Alert.alert(
-          "Connection Error",
-          "Please check your internet connection.",
+          `${language && i18n.t("connectionError")}`,
+          `${language && i18n.t("internetError")}`,
+
           [
-            { text: "Retry", onPress: () => searchNews(query, pg) },
-            { text: "Cancel", style: "cancel" },
+            {
+              text: `${language && i18n.t("retry")}`,
+              onPress: () => searchNews(query, pg),
+            },
+            { text: `${language && i18n.t("cancel")}`, style: "cancel" },
           ]
         );
         Vibration.vibrate();
@@ -738,11 +759,12 @@ const News: React.FC = () => {
       <View style={s.searchBanner}>
         <Ionicons name="search" size={13} color={C.accent} />
         <Text style={s.searchBannerText}>
-          Results for <Text style={s.searchBannerQuery}>"{searchQuery}"</Text>
+          {language && i18n.t("resultsFor")}{" "}
+          <Text style={s.searchBannerQuery}>"{searchQuery}"</Text>
         </Text>
         <TouchableOpacity onPress={clearSearch} style={s.clearChip}>
           <Ionicons name="close" size={12} color={C.muted} />
-          <Text style={s.clearChipText}>Clear</Text>
+          <Text style={s.clearChipText}>{language && i18n.t("clear")}</Text>
         </TouchableOpacity>
       </View>
     ) : null;
@@ -751,7 +773,10 @@ const News: React.FC = () => {
     loadingMore ? (
       <View style={{ paddingVertical: 24, alignItems: "center" }}>
         <ActivityIndicator size="small" color={C.accent} />
-        <Text style={[s.loadingText, { marginTop: 8 }]}>Loading more…</Text>
+        <Text style={[s.loadingText, { marginTop: 8 }]}>
+          {" "}
+          {language && i18n.t("loadingMore")}
+        </Text>
       </View>
     ) : null;
 
@@ -761,7 +786,7 @@ const News: React.FC = () => {
         <View style={s.emptyIconBox}>
           <Ionicons name="newspaper-outline" size={36} color={C.accent} />
         </View>
-        <Text style={s.emptyTitle}>No news found</Text>
+        <Text style={s.emptyTitle}>{language && i18n.t("noNewsFound")} </Text>
         <Text style={s.emptyBody}>
           {searchQuery
             ? `No results for "${searchQuery}"`
@@ -769,7 +794,10 @@ const News: React.FC = () => {
         </Text>
         {searchQuery ? (
           <TouchableOpacity onPress={clearSearch} style={s.emptyAction}>
-            <Text style={s.emptyActionText}>Clear search</Text>
+            <Text style={s.emptyActionText}>
+              {" "}
+              {language && i18n.t("clearSearch")}{" "}
+            </Text>
           </TouchableOpacity>
         ) : null}
       </View>
