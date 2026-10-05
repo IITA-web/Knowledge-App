@@ -1,15 +1,18 @@
+import { useLanguage } from "@/context/LanguageContext";
+import i18n from "@/i18n";
 import { useRouter } from "expo-router";
 import { Image, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const home = () => {
   const router = useRouter();
+  const { language } = useLanguage();
+
   return (
     <SafeAreaView
       style={{
         flex: 1,
         width: "100%",
-        display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
         backgroundColor: "#fff",
@@ -19,7 +22,6 @@ const home = () => {
       <View style={{ width: "100%" }}>
         <View
           style={{
-            display: "flex",
             flexDirection: "column",
             justifyContent: "center",
             alignItems: "center",
@@ -29,8 +31,9 @@ const home = () => {
           <Image
             source={require("../../assets/images/iita_logo.png")}
             style={{ width: "50%", objectFit: "contain" }}
-          ></Image>
+          />
         </View>
+
         <Text
           style={{
             marginTop: 10,
@@ -39,8 +42,9 @@ const home = () => {
             textAlign: "center",
           }}
         >
-          Welcome
+          {language ? i18n.t("welcome.title") : "Welcome"}
         </Text>
+
         <Text
           style={{
             marginTop: 6,
@@ -49,11 +53,13 @@ const home = () => {
             textAlign: "center",
           }}
         >
-          Connecting You to Agricultural Insights
+          {language
+            ? i18n.t("welcome.subtitle")
+            : "Connecting You to Agricultural Insights"}
         </Text>
+
         <View
           style={{
-            display: "flex",
             flexDirection: "column",
             justifyContent: "center",
             alignItems: "center",
@@ -65,6 +71,7 @@ const home = () => {
           />
         </View>
       </View>
+
       <View style={{ width: "90%", marginHorizontal: 16 }}>
         <TouchableOpacity
           style={{
@@ -73,17 +80,16 @@ const home = () => {
             backgroundColor: "#D85016",
             height: 60,
             borderRadius: 8,
-            display: "flex",
             flexDirection: "column",
             justifyContent: "center",
             alignItems: "center",
           }}
-          onPress={() => router.push({ pathname: "/home" })}
+          onPress={() => router.replace({ pathname: "/home" })}
         >
           <Text
             style={{ textAlign: "center", fontWeight: "700", color: "#fff" }}
           >
-            Let's go
+            {language ? i18n.t("welcome.letsGo") : "Let's go"}
           </Text>
         </TouchableOpacity>
       </View>

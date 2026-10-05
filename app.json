@@ -3,12 +3,26 @@
     "name": "Knowledge App",
     "slug": "knowledgeapp",
     "version": "2.0.0",
+    "runtimeVersion": {
+      "policy": "fingerprint"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/1554da32-5090-4cf1-adf6-808a1e98bba1",
+      "enabled": true,
+      "checkAutomatically": "ON_LOAD",
+      "fallbackToCacheTimeout": 0
+    },
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "knowledgeapp55",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "bundleIdentifier": "com.iita.knowledgeapp",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "buildNumber": "6"
     },
     "android": {
       "adaptiveIcon": {
@@ -16,16 +30,19 @@
         "foregroundImage": "./assets/images/icon_crp.png"
       },
       "permissions": [
-        "android.permission.READ_EXTERNAL_STORAGE",
-        "android.permission.WRITE_EXTERNAL_STORAGE",
         "android.permission.DOWNLOAD_WITHOUT_NOTIFICATION",
         "android.permission.ACCESS_NETWORK_STATE",
-        "android.permission.RECORD_AUDIO",
         "android.permission.MODIFY_AUDIO_SETTINGS",
-        "android.permission.ACCESS_MEDIA_LOCATION"
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.INTERNET",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
       ],
       "package": "com.iita.knowledgeapp",
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "versionCode": 72
     },
     "web": {
       "output": "static",
@@ -36,7 +53,7 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
+          "backgroundColor": "#ffffff",
           "android": {
             "image": "./assets/images/icon.png",
             "imageWidth": 76
@@ -44,29 +61,7 @@
         }
       ],
       "expo-location",
-      "expo-video",
-      [
-        "expo-updates",
-        {
-          "username": "iita"
-        }
-      ],
-      "expo-audio",
-      "expo-web-browser",
-      [
-        "expo-image-picker",
-        {
-          "photosPermission": "The app accesses your photos to let you share them with your friends."
-        }
-      ],
-      [
-        "expo-media-library",
-        {
-          "photosPermission": "Allow $(PRODUCT_NAME) to access your photos.",
-          "savePhotosPermission": "Allow $(PRODUCT_NAME) to save photos.",
-          "isAccessMediaLocationEnabled": true
-        }
-      ],
+      "expo-updates",
       [
         "expo-file-system",
         {
@@ -74,9 +69,10 @@
           "enableFileSharing": true
         }
       ],
+      "expo-audio",
+      "expo-web-browser",
       "@config-plugins/react-native-blob-util",
       "expo-sharing",
-      "expo-image",
       "expo-localization"
     ],
     "experiments": {

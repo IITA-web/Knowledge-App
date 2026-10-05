@@ -1,11 +1,21 @@
+import { useLanguage } from "@/context/LanguageContext";
+import i18n from "@/i18n";
+import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { LinearGradient } from "expo-linear-gradient";
+import * as Location from "expo-location";
+import { useNavigation } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
   Animated,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   TextInput,
@@ -14,57 +24,32 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { LinearGradient } from "expo-linear-gradient";
-import * as Location from "expo-location";
-import CustomHeaderII from "../components/CustomHeaderII";
-
 // ─── Theme ────────────────────────────────────────────────────────────────────
 const T = {
-  bg0: "rgb(242, 242, 242)", // page background
-  bg1: "#FFFFFF", // surface / tab bar
-  bg2: "#F5F0ED", // secondary surface
+  bg0: "rgb(242, 242, 242)",
+  bg1: "#FFFFFF",
+  bg2: "#F5F0ED",
   card: "rgba(216, 80, 22, 0.05)",
   cardBorder: "rgba(216, 80, 22, 0.12)",
-  accent: "#D85016", // primary brand orange
+  accent: "#D85016",
   accentDark: "#B84010",
   accentDim: "rgba(216, 80, 22, 0.10)",
   accentDimBorder: "rgba(216, 80, 22, 0.25)",
-  accentText: "#FFFFFF", // text on accent bg
-  gold: "#B85C00", // warm amber (on light)
+  accentText: "#FFFFFF",
+  gold: "#B85C00",
   blue: "#1A6FBF",
   blueLight: "#0A4F8F",
   red: "#C0392B",
   white: "#FFFFFF",
   muted: "#7A6A60",
   mutedDark: "#B5A49A",
-  text: "#2C1A10", // primary body text (dark brown)
-  textSub: "#5C4A40", // secondary text
+  text: "#2C1A10",
+  textSub: "#5C4A40",
+  border: "#E8E8E8",
+  shadow: "rgba(0,0,0,0.07)",
 };
 
-// ─── WMO weather-code to label ─────────────────────────────────────────────
-const WMO: any = {
-  0: "Clear Sky",
-  1: "Mainly Clear",
-  2: "Partly Cloudy",
-  3: "Overcast",
-  45: "Fog",
-  48: "Icy Fog",
-  51: "Light Drizzle",
-  53: "Drizzle",
-  55: "Heavy Drizzle",
-  61: "Light Rain",
-  63: "Rain",
-  65: "Heavy Rain",
-  71: "Light Snow",
-  73: "Snow",
-  75: "Heavy Snow",
-  80: "Rain Showers",
-  81: "Heavy Showers",
-  82: "Violent Showers",
-  95: "Thunderstorm",
-};
-
+// ─── WMO weather-code maps ─────────────────────────────────────────────────
 const WMO_ICON: any = {
   0: "☀️",
   1: "🌤",
@@ -87,75 +72,71 @@ const WMO_ICON: any = {
   95: "⛈",
 };
 
+// WMO label keys — resolved at render time via i18n
+const WMO_KEY: any = {
+  0: "weather.wmo.clearSky",
+  1: "weather.wmo.mainlyClear",
+  2: "weather.wmo.partlyCloudy",
+  3: "weather.wmo.overcast",
+  45: "weather.wmo.fog",
+  48: "weather.wmo.icyFog",
+  51: "weather.wmo.lightDrizzle",
+  53: "weather.wmo.drizzle",
+  55: "weather.wmo.heavyDrizzle",
+  61: "weather.wmo.lightRain",
+  63: "weather.wmo.rain",
+  65: "weather.wmo.heavyRain",
+  71: "weather.wmo.lightSnow",
+  73: "weather.wmo.snow",
+  75: "weather.wmo.heavySnow",
+  80: "weather.wmo.rainShowers",
+  81: "weather.wmo.heavyShowers",
+  82: "weather.wmo.violentShowers",
+  95: "weather.wmo.thunderstorm",
+};
+
 const weatherIcon = (code: any) => WMO_ICON[code] ?? "🌡";
-const weatherLabel = (code: any) => WMO[code] ?? "Unknown";
+const weatherLabel = (code: any) => {
+  const key = WMO_KEY[code];
+  return key ? i18n.t(key) : i18n.t("weather.unknown");
+};
 
 // ─── Advice engine ────────────────────────────────────────────────────────────
 const getAdvice = (rain: any, temp: any, wind: any, wmoCode: any) => {
   if ([95, 81, 82, 65].includes(wmoCode))
-    return {
-      icon: "⛈",
-      text: "Severe weather. Stay indoors, do not work outside.",
-      color: T.red,
-    };
+    return { icon: "⛈", key: "weather.advice.severe", color: T.red };
   if (rain > 70)
-    return {
-      icon: "🌱",
-      text: "High chance of rain. Great for planting; skip irrigation.",
-      color: T.blue,
-    };
+    return { icon: "🌱", key: "weather.advice.highRain", color: T.blue };
   if (temp > 35)
-    return {
-      icon: "🔥",
-      text: "Extreme heat. Irrigate early morning before 7 AM.",
-      color: T.gold,
-    };
+    return { icon: "🔥", key: "weather.advice.extremeHeat", color: T.gold };
   if (wind > 25)
-    return {
-      icon: "🌬",
-      text: "Strong winds. Avoid spraying pesticides or fertilisers.",
-      color: "#FFA94D",
-    };
+    return { icon: "🌬", key: "weather.advice.strongWind", color: "#FFA94D" };
   if (temp < 10)
-    return {
-      icon: "❄️",
-      text: "Cold conditions. Protect sensitive seedlings overnight.",
-      color: T.blueLight,
-    };
+    return { icon: "❄️", key: "weather.advice.cold", color: T.blueLight };
   if (rain < 10 && temp > 28)
-    return {
-      icon: "💧",
-      text: "Dry and warm. Irrigate crops in the evening.",
-      color: T.accent,
-    };
-  return {
-    icon: "✅",
-    text: "Conditions are stable. A good day for most farm activities.",
-    color: T.accent,
-  };
+    return { icon: "💧", key: "weather.advice.dryWarm", color: T.accent };
+  return { icon: "✅", key: "weather.advice.stable", color: T.accent };
 };
 
 // ─── Storage helpers ──────────────────────────────────────────────────────────
 const STORAGE_KEY = "farm_locations_v1";
-
 const loadLocations = async () => {
   try {
-    const raw = await AsyncStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
+    const r = await AsyncStorage.getItem(STORAGE_KEY);
+    return r ? JSON.parse(r) : [];
   } catch {
     return [];
   }
 };
-
 const saveLocations = async (locs: any) => {
   try {
     await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(locs));
   } catch (e) {
-    console.error(e);
+    // console.error(e);
   }
 };
 
-// ─── Fetch weather for a coordinate ──────────────────────────────────────────
+// ─── Fetch ────────────────────────────────────────────────────────────────────
 const fetchWeatherForCoord = async (lat: any, lon: any) => {
   const res = await fetch(
     `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
@@ -167,21 +148,41 @@ const fetchWeatherForCoord = async (lat: any, lon: any) => {
   return res.json();
 };
 
-// ─── Day abbreviation ─────────────────────────────────────────────────────────
+// ─── Day label ────────────────────────────────────────────────────────────────
 const dayLabel = (dateStr: any, index: number) => {
-  if (index === 0) return "Today";
-  if (index === 1) return "Tmrw";
+  if (index === 0) return i18n.t("weather.today");
+  if (index === 1) return i18n.t("weather.tomorrow");
   const d = new Date(dateStr);
   return d.toLocaleDateString("en-US", { weekday: "short" });
+};
+
+// ════════════════════════════════════════════════════════════════════════════
+// HEADER — matches the style used in news/events/videos screens
+// ════════════════════════════════════════════════════════════════════════════
+const Header = ({ onBack }: { onBack: () => void }) => {
+  const { language } = useLanguage();
+  return (
+    <View style={s.header}>
+      <TouchableOpacity onPress={onBack} style={s.headerBackBtn}>
+        <Ionicons name="arrow-back" size={20} color={"#000"} />
+      </TouchableOpacity>
+      <Text style={s.headerTitle}>
+        {language ? i18n.t("weather.screenTitle") : "Weather"}
+      </Text>
+    </View>
+  );
 };
 
 // ════════════════════════════════════════════════════════════════════════════
 // MAIN COMPONENT
 // ════════════════════════════════════════════════════════════════════════════
 export default function FarmWeatherScreen() {
-  const [locations, setLocations] = useState<any>([]); // saved location list
-  const [activeIdx, setActiveIdx] = useState(0); // which location is shown
-  const [weatherMap, setWeatherMap] = useState<any>({}); // id → weather data
+  const navigation = useNavigation();
+  const { language } = useLanguage();
+
+  const [locations, setLocations] = useState<any>([]);
+  const [activeIdx, setActiveIdx] = useState(0);
+  const [weatherMap, setWeatherMap] = useState<any>({});
   const [loading, setLoading] = useState(true);
   const [addModalVisible, setAddModalVisible] = useState(false);
   const [newName, setNewName] = useState("");
@@ -191,7 +192,6 @@ export default function FarmWeatherScreen() {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
 
-  // ── Bootstrap ──────────────────────────────────────────────────────────────
   useEffect(() => {
     bootstrap();
   }, []);
@@ -202,8 +202,7 @@ export default function FarmWeatherScreen() {
       setLocations(saved);
       await loadAllWeather(saved);
     } else {
-      // first launch: auto-add current location
-      await addCurrentLocation("My Farm", saved);
+      await addCurrentLocation(i18n.t("weather.myFarm"), saved);
     }
     setLoading(false);
   };
@@ -222,7 +221,6 @@ export default function FarmWeatherScreen() {
     setWeatherMap(map);
   };
 
-  // ── Animate when active location changes ─────────────────────────────────
   useEffect(() => {
     fadeAnim.setValue(0);
     slideAnim.setValue(24);
@@ -240,20 +238,22 @@ export default function FarmWeatherScreen() {
     ]).start();
   }, [activeIdx]);
 
-  // ── Add current GPS location ──────────────────────────────────────────────
   const addCurrentLocation = async (label: any, existingLocs = locations) => {
     setGettingGPS(true);
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
-        Alert.alert("Permission denied", "Location permission is required.");
+        Alert.alert(
+          i18n.t("weather.permissionDenied"),
+          i18n.t("weather.locationRequired")
+        );
         setGettingGPS(false);
         return;
       }
       const loc = await Location.getCurrentPositionAsync({});
       const newLoc = {
         id: Date.now().toString(),
-        name: label || "Farm Location",
+        name: label || i18n.t("weather.farmLocation"),
         lat: loc.coords.latitude,
         lon: loc.coords.longitude,
       };
@@ -263,8 +263,11 @@ export default function FarmWeatherScreen() {
       const data = await fetchWeatherForCoord(newLoc.lat, newLoc.lon);
       setWeatherMap((prev: any) => ({ ...prev, [newLoc.id]: data }));
       setActiveIdx(updated.length - 1);
-    } catch (e) {
-      Alert.alert("Error", "Could not get location.");
+    } catch {
+      Alert.alert(
+        i18n.t("weather.error"),
+        i18n.t("weather.couldNotGetLocation")
+      );
     }
     setGettingGPS(false);
   };
@@ -277,48 +280,55 @@ export default function FarmWeatherScreen() {
   };
 
   const handleDeleteLocation = (id: any) => {
-    Alert.alert("Remove Location", "Remove this location from your list?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Remove",
-        style: "destructive",
-        onPress: async () => {
-          const updated = locations.filter((l: any) => l.id !== id);
-          setLocations(updated);
-          await saveLocations(updated);
-          const newMap: any = { ...weatherMap };
-          delete newMap[id];
-          setWeatherMap(newMap);
-          setActiveIdx(Math.max(0, activeIdx - 1));
+    Alert.alert(
+      i18n.t("weather.removeLocation"),
+      i18n.t("weather.removeLocationConfirm"),
+      [
+        { text: i18n.t("weather.cancel"), style: "cancel" },
+        {
+          text: i18n.t("weather.remove"),
+          style: "destructive",
+          onPress: async () => {
+            const updated = locations.filter((l: any) => l.id !== id);
+            setLocations(updated);
+            await saveLocations(updated);
+            const newMap: any = { ...weatherMap };
+            delete newMap[id];
+            setWeatherMap(newMap);
+            setActiveIdx(Math.max(0, activeIdx - 1));
+          },
         },
-      },
-    ]);
+      ]
+    );
   };
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // RENDER STATES
-  // ─────────────────────────────────────────────────────────────────────────
+  // ── Loading ────────────────────────────────────────────────────────────────
   if (loading) {
     return (
       <View style={s.loadingBg}>
         <ActivityIndicator size="large" color={T.accent} />
-        <Text style={s.loadingText}>Fetching weather data…</Text>
+        <Text style={s.loadingText}>
+          {language ? i18n.t("weather.fetchingData") : "Fetching weather data…"}
+        </Text>
       </View>
     );
   }
 
+  // ── Empty ──────────────────────────────────────────────────────────────────
   if (!locations.length) {
     return (
       <View style={s.loadingBg}>
         <Text style={{ fontSize: 40 }}>🌾</Text>
         <Text style={[s.loadingText, { marginTop: 12, fontSize: 16 }]}>
-          No locations saved
+          {language ? i18n.t("weather.noLocations") : "No locations saved"}
         </Text>
         <TouchableOpacity
           style={s.emptyBtn}
           onPress={() => setAddModalVisible(true)}
         >
-          <Text style={s.emptyBtnText}>+ Add Location</Text>
+          <Text style={s.emptyBtnText}>
+            + {language ? i18n.t("weather.addLocation") : "Add Location"}
+          </Text>
         </TouchableOpacity>
         <AddModal
           visible={addModalVisible}
@@ -337,9 +347,12 @@ export default function FarmWeatherScreen() {
 
   return (
     <SafeAreaView style={s.root}>
-      <CustomHeaderII title="Weather" />
+      <StatusBar barStyle="dark-content" backgroundColor={T.bg0} />
 
-      {/* ── Location Tabs ─────────────────────────────────────────────── */}
+      {/* ── Header ─────────────────────────────────────────────────────── */}
+      <Header onBack={() => navigation.goBack()} />
+
+      {/* ── Location Tabs ──────────────────────────────────────────────── */}
       <View style={s.tabBar}>
         <ScrollView
           horizontal
@@ -377,30 +390,40 @@ export default function FarmWeatherScreen() {
         </TouchableOpacity>
       </View>
 
+      {/* ── Manage Banner ──────────────────────────────────────────────── */}
       {manageMode && (
         <View style={s.manageBanner}>
-          <Text style={s.manageBannerText}>Long-press a tab to manage · </Text>
+          <Text style={s.manageBannerText}>
+            {language
+              ? i18n.t("weather.longPressManage")
+              : "Long-press a tab to manage · "}
+          </Text>
           <TouchableOpacity onPress={() => handleDeleteLocation(activeLoc.id)}>
             <Text
               style={[s.manageBannerText, { color: T.red, fontWeight: "700" }]}
             >
-              Remove "{activeLoc.name}"
+              {language ? i18n.t("weather.remove") : "Remove"} "{activeLoc.name}
+              "
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={s.manageDone}
             onPress={() => setManageMode(false)}
           >
-            <Text style={[s.manageBannerText, { color: T.accent }]}>Done</Text>
+            <Text style={[s.manageBannerText, { color: T.accent }]}>
+              {language ? i18n.t("weather.done") : "Done"}
+            </Text>
           </TouchableOpacity>
         </View>
       )}
 
-      {/* ── Weather Content ────────────────────────────────────────────── */}
+      {/* ── Weather Content ─────────────────────────────────────────────── */}
       {!weather ? (
         <View style={s.center}>
           <ActivityIndicator size="small" color={T.accent} />
-          <Text style={s.loadingText}>Loading…</Text>
+          <Text style={s.loadingText}>
+            {language ? i18n.t("weather.loading") : "Loading…"}
+          </Text>
         </View>
       ) : (
         <Animated.ScrollView
@@ -418,7 +441,7 @@ export default function FarmWeatherScreen() {
         </Animated.ScrollView>
       )}
 
-      {/* ── Add Location Modal ─────────────────────────────────────────── */}
+      {/* ── Add Location Modal ──────────────────────────────────────────── */}
       <AddModal
         visible={addModalVisible}
         name={newName}
@@ -431,7 +454,9 @@ export default function FarmWeatherScreen() {
   );
 }
 
+// ─── Weather Hero ─────────────────────────────────────────────────────────────
 function WeatherHero({ location, weather }: any) {
+  const { language } = useLanguage();
   const cw = weather.current_weather;
   const daily = weather.daily;
   const rain = daily.precipitation_probability_max[0];
@@ -444,9 +469,7 @@ function WeatherHero({ location, weather }: any) {
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
     >
-      {/* Decorative ring */}
       <View style={s.heroRing} />
-
       <View style={s.heroTop}>
         <View>
           <Text style={s.heroLocation}>{location.name}</Text>
@@ -456,17 +479,23 @@ function WeatherHero({ location, weather }: any) {
         </View>
         <Text style={s.heroIcon}>{weatherIcon(code)}</Text>
       </View>
-
       <Text style={s.heroTemp}>{cw.temperature}°</Text>
       <Text style={s.heroCondition}>{weatherLabel(code)}</Text>
-
       <View style={s.heroPills}>
-        <Pill icon="💨" value={`${cw.windspeed} km/h`} label="Wind" />
-        <Pill icon="🌧" value={`${rain}%`} label="Rain" />
+        <Pill
+          icon="💨"
+          value={`${cw.windspeed} km/h`}
+          label={language ? i18n.t("weather.wind") : "Wind"}
+        />
+        <Pill
+          icon="🌧"
+          value={`${rain}%`}
+          label={language ? i18n.t("weather.rain") : "Rain"}
+        />
         <Pill
           icon="🌡"
           value={`${daily.temperature_2m_max[0]}° / ${daily.temperature_2m_min[0]}°`}
-          label="Hi / Lo"
+          label={language ? i18n.t("weather.hiLo") : "Hi / Lo"}
         />
       </View>
     </LinearGradient>
@@ -483,8 +512,9 @@ function Pill({ icon, value, label }: any) {
   );
 }
 
-// ── Farming Advice ────────────────────────────────────────────────────────
+// ─── Farming Advice ───────────────────────────────────────────────────────────
 function FarmingAdvice({ weather }: any) {
+  const { language } = useLanguage();
   const cw = weather.current_weather;
   const daily = weather.daily;
   const rain = daily.precipitation_probability_max[0];
@@ -495,36 +525,35 @@ function FarmingAdvice({ weather }: any) {
       <View style={[s.adviceDot, { backgroundColor: advice.color }]} />
       <View style={{ flex: 1 }}>
         <Text style={[s.adviceTitle, { color: advice.color }]}>
-          {advice.icon} Farming Advice
+          {advice.icon}{" "}
+          {language ? i18n.t("weather.farmingAdvice") : "Farming Advice"}
         </Text>
-        <Text style={s.adviceText}>{advice.text}</Text>
+        <Text style={s.adviceText}>
+          {language ? i18n.t(advice.key) : advice.key}
+        </Text>
       </View>
     </View>
   );
 }
 
-// ── Hourly Humidity Strip ──────────────────────────────────────────────────
+// ─── Hourly Humidity ──────────────────────────────────────────────────────────
 function HourlyHumidity({ weather }: any) {
+  const { language } = useLanguage();
   const hourly = weather.hourly;
   if (!hourly?.time) return null;
 
-  // Show next 12 hours starting from current hour
-  const now = new Date();
-  const currentHour = now.getHours();
   const slots = hourly.time
     .map((t: any, i: number) => ({
       time: t,
       humidity: hourly.relative_humidity_2m[i],
     }))
-    .filter((_: any, i: number) => {
-      const h = new Date(hourly.time[i]).getHours();
-      return true; // just show first 12 slots for simplicity
-    })
     .slice(0, 12);
 
   return (
     <View style={s.section}>
-      <Text style={s.sectionTitle}>💧 Humidity Today</Text>
+      <Text style={s.sectionTitle}>
+        💧 {language ? i18n.t("weather.humidityToday") : "Humidity Today"}
+      </Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
         {slots.map((slot: any, i: number) => {
           const hour = new Date(slot.time).getHours();
@@ -555,19 +584,21 @@ function HourlyHumidity({ weather }: any) {
   );
 }
 
-// ── 7-Day Forecast ─────────────────────────────────────────────────────────
+// ─── 7-Day Forecast ───────────────────────────────────────────────────────────
 function WeekForecast({ weather }: any) {
+  const { language } = useLanguage();
   const daily = weather.daily;
   return (
     <View style={s.section}>
-      <Text style={s.sectionTitle}>📅 7-Day Forecast</Text>
+      <Text style={s.sectionTitle}>
+        📅 {language ? i18n.t("weather.sevenDayForecast") : "7-Day Forecast"}
+      </Text>
       {daily.time.map((date: any, i: number) => {
         const code = daily.weathercode?.[i] ?? 0;
         const hi = daily.temperature_2m_max[i];
         const lo = daily.temperature_2m_min[i];
         const rain = daily.precipitation_probability_max[i];
         const wind = daily.windspeed_10m_max[i];
-        const precip = daily.precipitation_sum?.[i];
 
         return (
           <View key={date} style={s.forecastRow}>
@@ -591,7 +622,7 @@ function WeekForecast({ weather }: any) {
   );
 }
 
-// ── Add Location Modal ────────────────────────────────────────────────────
+// ─── Add Location Modal ───────────────────────────────────────────────────────
 function AddModal({
   visible,
   name,
@@ -600,6 +631,7 @@ function AddModal({
   onConfirm,
   onClose,
 }: any) {
+  const { language } = useLanguage();
   return (
     <Modal
       visible={visible}
@@ -607,43 +639,123 @@ function AddModal({
       animationType="fade"
       onRequestClose={onClose}
     >
-      <Pressable style={s.modalOverlay} onPress={onClose}>
-        <Pressable style={s.modalBox} onPress={() => {}}>
-          <Text style={s.modalTitle}>📍 Add Location</Text>
-          <Text style={s.modalSub}>
-            Give this farm spot a name, then tap Capture to use your current GPS
-            position.
-          </Text>
-          <TextInput
-            style={s.modalInput}
-            placeholder="e.g. North Field, Home Farm…"
-            placeholderTextColor={T.mutedDark}
-            value={name}
-            onChangeText={onChangeName}
-            autoFocus
-          />
-          <TouchableOpacity
-            style={[s.modalBtn, (!name.trim() || loading) && { opacity: 0.5 }]}
-            onPress={onConfirm}
-            disabled={!name.trim() || loading}
-          >
-            {loading ? (
-              <ActivityIndicator color={T.bg0} size="small" />
-            ) : (
-              <Text style={s.modalBtnText}>📡 Capture GPS & Save</Text>
-            )}
-          </TouchableOpacity>
-          <TouchableOpacity style={s.modalCancel} onPress={onClose}>
-            <Text style={s.modalCancelText}>Cancel</Text>
-          </TouchableOpacity>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
+        <Pressable style={s.modalOverlay} onPress={onClose}>
+          <SafeAreaView style={s.modalBox}>
+            {/* header */}
+            <View
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "flex-start",
+                justifyContent: "space-between",
+                marginTop: 24,
+              }}
+            >
+              <View>
+                <Text style={s.modalTitle}>
+                  📍 {language ? i18n.t("weather.addLocation") : "Add Location"}
+                </Text>
+                <Text style={s.modalSub}>
+                  {language
+                    ? i18n.t("weather.addLocationSub")
+                    : "Give this farm spot a name, then tap Capture to use your current GPS position."}
+                </Text>
+              </View>
+
+              <TouchableOpacity
+                style={{
+                  position: "absolute",
+                  top: -32,
+                  right: -16,
+                  padding: 10,
+                }}
+                onPress={onClose}
+              >
+                {/* <Text style={s.modalCancelText}> */}
+                <Ionicons name="close" color={"#000"} size={24} />
+                {/* {language ? i18n.t("weather.cancel") : "Cancel"} */}
+                {/* </Text> */}
+              </TouchableOpacity>
+            </View>
+
+            <TextInput
+              style={s.modalInput}
+              placeholder={
+                language
+                  ? i18n.t("weather.locationPlaceholder")
+                  : "e.g. North Field, Home Farm…"
+              }
+              placeholderTextColor={T.mutedDark}
+              value={name}
+              onChangeText={onChangeName}
+              autoFocus
+            />
+
+            <TouchableOpacity
+              style={[
+                s.modalBtn,
+                (!name.trim() || loading) && { opacity: 0.5 },
+              ]}
+              onPress={onConfirm}
+              disabled={!name.trim() || loading}
+            >
+              {loading ? (
+                <ActivityIndicator color={T.bg0} size="small" />
+              ) : (
+                <Text style={s.modalBtnText}>
+                  📡{" "}
+                  {language
+                    ? i18n.t("weather.captureGPS")
+                    : "Capture GPS & Save"}
+                </Text>
+              )}
+            </TouchableOpacity>
+          </SafeAreaView>
         </Pressable>
-      </Pressable>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
 
+// ─── Styles ───────────────────────────────────────────────────────────────────
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: T.bg0 },
+
+  // ── Header — matches news/events/videos style ─────────────────────────────
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: T.border,
+    backgroundColor: T.bg0,
+    gap: 12,
+  },
+  headerBackBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 10,
+    backgroundColor: T.bg1,
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: T.shadow,
+    shadowOpacity: 1,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 1 },
+    elevation: 2,
+  },
+  headerTitle: {
+    flex: 1,
+    color: T.text,
+    fontSize: 18,
+    fontWeight: "800",
+    letterSpacing: -0.3,
+  },
 
   // Loading
   loadingBg: {
@@ -721,10 +833,9 @@ const s = StyleSheet.create({
   manageBannerText: { color: T.muted, fontSize: 12 },
   manageDone: { marginLeft: "auto" },
 
-  // Scroll
   scroll: { flex: 1 },
 
-  // Hero  (gradient set inline; only structural styles here)
+  // Hero
   hero: {
     margin: 16,
     borderRadius: 24,
@@ -795,12 +906,7 @@ const s = StyleSheet.create({
     shadowRadius: 4,
     elevation: 1,
   },
-  adviceDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginTop: 6,
-  },
+  adviceDot: { width: 8, height: 8, borderRadius: 4, marginTop: 6 },
   adviceTitle: { fontSize: 13, fontWeight: "700", marginBottom: 4 },
   adviceText: { color: T.textSub, fontSize: 14, lineHeight: 20 },
 
@@ -862,9 +968,11 @@ const s = StyleSheet.create({
     justifyContent: "flex-end",
   },
   modalBox: {
+    flex: 1,
     backgroundColor: T.bg1,
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
+
     padding: 28,
     borderTopWidth: 1,
     borderColor: "rgba(216,80,22,0.15)",

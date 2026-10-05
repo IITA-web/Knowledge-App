@@ -260,7 +260,13 @@ export default function RootLayout() {
                 headerShown: false,
               }}
             />
-
+            <Stack.Screen
+              name="cropphotos"
+              options={{
+                title: "Photos",
+                headerShown: false,
+              }}
+            />
             {/* <Stack.Screen name="+not-found" /> */}
           </Stack>
 

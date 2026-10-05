@@ -2321,13 +2321,21 @@ const Videoplaylist = () => {
               item={item}
               index={index}
               onPress={() =>
-                router.push({
-                  pathname: "/videoplaylistitems",
-                  params: {
-                    id: item?.id?.toString() ?? "",
-                    otherParam: item?.snippet?.title ?? "",
-                  },
-                })
+                searchQuery
+                  ? router.push({
+                      pathname: "/videoplay",
+                      params: {
+                        id: String(item?.id?.videoId ?? ""),
+                        otherParam: item?.snippet?.title ?? "",
+                      },
+                    })
+                  : router.push({
+                      pathname: "/videoplaylistitems",
+                      params: {
+                        id: item?.id?.toString() ?? "",
+                        otherParam: item?.snippet?.title ?? "",
+                      },
+                    })
               }
             />
           )}

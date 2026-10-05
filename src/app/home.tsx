@@ -14,6 +14,7 @@ import {
   Platform,
   Pressable,
   ScrollView,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
@@ -141,7 +142,7 @@ export const navItems = [
   },
 
   {
-    titleKey: "digitalTools",
+    titleKey: "digitalToolsItem",
     navigationItem: "digitaltools",
     emoji: "🧰",
     bg: "#607D8B",
@@ -155,14 +156,14 @@ export const navItems = [
   },
 
   {
-    titleKey: "tv",
+    titleKey: "tvItem",
     navigationItem: "tv",
     emoji: "📺",
     bg: "#795548",
   },
 
   {
-    titleKey: "weather",
+    titleKey: "weatherItem",
     navigationItem: "weather",
     emoji: "🌤️",
     bg: "#FFC107",
@@ -206,6 +207,8 @@ const HomeScreen = () => {
   /* CONTACT FORM */
   const [form, setForm] = useState({
     type: "feedback",
+    name: "",
+    address: "",
     subject: "",
     message: "",
   });
@@ -351,6 +354,14 @@ const HomeScreen = () => {
       return Alert.alert("Missing field", "Please select a type.");
     }
 
+    if (!form.name) {
+      return Alert.alert("Missing field", "Please enter your name.");
+    }
+
+    if (!form.address) {
+      return Alert.alert("Missing field", "Please enter your address.");
+    }
+
     if (!form.subject?.trim()) {
       return Alert.alert("Missing field", "Please enter a subject.");
     }
@@ -363,7 +374,8 @@ const HomeScreen = () => {
 
     try {
       const response = await fetch(
-        "https://taat-backend.onrender.com/v1/api/knowledge-app",
+        "https://taat-backend.onrender.com/v1/api/knowledge-app/",
+        // "http://10.114.49.129:4000/v1/api/knowledge-app",
         {
           method: "POST",
           headers: {
@@ -371,13 +383,13 @@ const HomeScreen = () => {
           },
           body: JSON.stringify({
             type: form.type,
+            name: form.name,
+            address: form.address,
             subject: form.subject,
             message: form.message,
           }),
         }
       );
-
-      console.log(" handleContactSubmit ===>>> ", response);
 
       const data = await response.json();
 
@@ -389,6 +401,8 @@ const HomeScreen = () => {
 
       setForm({
         type: "feedback",
+        name: "",
+        address: "",
         subject: "",
         message: "",
       });
@@ -963,107 +977,145 @@ const HomeScreen = () => {
       </Modal>
 
       {/* ---------------- CONTACT MODAL ---------------- */}
-      <Modal visible={contactModal} transparent animationType="slide">
+      <Modal visible={contactModal} animationType="slide">
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={{
-            flex: 1,
-            backgroundColor: "rgba(0,0,0,0.5)",
-            justifyContent: "flex-end",
-          }}
+          style={{ flex: 1, backgroundColor: "#fff" }}
         >
-          <View
-            style={{
-              backgroundColor: "#fff",
-              padding: 20,
-              borderTopLeftRadius: 20,
-              borderTopRightRadius: 20,
-            }}
-          >
-            <View
-              style={{ flexDirection: "row", justifyContent: "space-between" }}
+          <View style={{ flex: 1 }}>
+            {/* TOP SECTION */}
+            <ScrollView
+              contentContainerStyle={{
+                padding: 20,
+                paddingBottom: 40,
+              }}
+              keyboardShouldPersistTaps="handled"
             >
-              <Text style={{ fontSize: 18, fontWeight: "700" }}>
-                {language && i18n.t("contactUs")}
-              </Text>
-              <TouchableOpacity onPress={() => setContactModal(false)}>
-                <Ionicons name="close" size={24} />
-              </TouchableOpacity>
-            </View>
+              {/* Header */}
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginVertical: 20,
+                }}
+              >
+                <Text style={{ fontSize: 18, fontWeight: "700" }}>
+                  {language && i18n.t("contactUs")}
+                </Text>
 
-            {/* TYPE */}
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {["feedback", "bug", "request"].map((t) => (
-                <TouchableOpacity
-                  key={t}
-                  onPress={() => setForm({ ...form, type: t })}
-                  style={{
-                    padding: 8,
-                    marginRight: 10,
-                    backgroundColor: form.type === t ? "#F26522" : "#eee",
-                    borderRadius: 20,
-                    marginTop: 10,
-                  }}
-                >
-                  <Text style={{ color: form.type === t ? "#fff" : "#000" }}>
-                    {language && i18n.t(t)}
-                  </Text>
+                <TouchableOpacity onPress={() => setContactModal(false)}>
+                  <Ionicons name="close" size={24} />
                 </TouchableOpacity>
-              ))}
+              </View>
+
+              {/* TYPE */}
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                {["feedback", "bug", "request"].map((t) => (
+                  <TouchableOpacity
+                    key={t}
+                    onPress={() => setForm({ ...form, type: t })}
+                    style={{
+                      paddingHorizontal: 16,
+                      marginRight: 10,
+                      backgroundColor: form.type === t ? "#F26522" : "#eee",
+                      borderRadius: 20,
+                      height: 40,
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Text style={{ color: form.type === t ? "#fff" : "#000" }}>
+                      {language && i18n.t(t)}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+
+              <TextInput
+                placeholder={i18n.t("name")}
+                value={form.name}
+                placeholderTextColor="#6B7280"
+                onChangeText={(v) => setForm({ ...form, name: v })}
+                style={styles.input}
+              />
+
+              <TextInput
+                placeholder={i18n.t("address")}
+                value={form.address}
+                placeholderTextColor="#6B7280"
+                onChangeText={(v) => setForm({ ...form, address: v })}
+                style={styles.input}
+              />
+
+              <TextInput
+                placeholder={i18n.t("subject")}
+                value={form.subject}
+                placeholderTextColor="#6B7280"
+                onChangeText={(v) => setForm({ ...form, subject: v })}
+                style={styles.input}
+              />
+
+              <TextInput
+                placeholder={i18n.t("message")}
+                multiline
+                value={form.message}
+                placeholderTextColor="#6B7280"
+                onChangeText={(v) => setForm({ ...form, message: v })}
+                style={styles.messageInput}
+              />
             </ScrollView>
 
-            <TextInput
-              placeholder={i18n.t("subject")}
-              value={form.subject}
-              placeholderTextColor={"#6B7280"}
-              onChangeText={(v) => setForm({ ...form, subject: v })}
+            {/* BOTTOM BUTTON */}
+            <View
               style={{
-                borderWidth: 1,
-                borderColor: "#ddd",
-                marginTop: 15,
-                padding: 10,
-                borderRadius: 10,
-              }}
-            />
-
-            <TextInput
-              placeholder={i18n.t("message")}
-              placeholderTextColor={"#6B7280"}
-              multiline
-              value={form.message}
-              onChangeText={(v) => setForm({ ...form, message: v })}
-              style={{
-                borderWidth: 1,
-                borderColor: "#ddd",
-                marginTop: 10,
-                padding: 10,
-                height: 100,
-                borderRadius: 10,
-              }}
-            />
-
-            <TouchableOpacity
-              onPress={handleContactSubmit}
-              style={{
-                backgroundColor: "#111",
-                padding: 15,
-                marginTop: 15,
-                borderRadius: 12,
-                alignItems: "center",
-                marginBottom: status_bar_height ? status_bar_height + 10 : 40,
+                paddingHorizontal: 20,
+                paddingBottom: status_bar_height ? status_bar_height + 10 : 30,
+                paddingTop: 12,
+                borderTopWidth: 1,
+                borderTopColor: "#eee",
+                backgroundColor: "#fff",
               }}
             >
-              <Text style={{ color: "#fff", fontWeight: "700" }}>
-                {sendingFeedback
-                  ? i18n.t("cropDetail.loading")
-                  : i18n.t("send")}
-              </Text>
-            </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleContactSubmit}
+                style={{
+                  backgroundColor: "#111",
+                  padding: 16,
+                  borderRadius: 12,
+                  alignItems: "center",
+                }}
+              >
+                <Text style={{ color: "#fff", fontWeight: "700" }}>
+                  {sendingFeedback
+                    ? i18n.t("cropDetail.loading")
+                    : i18n.t("send")}
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </KeyboardAvoidingView>
       </Modal>
     </>
   );
 };
+
+const styles = StyleSheet.create({
+  input: {
+    borderWidth: 1,
+    borderColor: "#ddd",
+    marginTop: 15,
+    padding: 14,
+    borderRadius: 12,
+  },
+  messageInput: {
+    borderWidth: 1,
+    borderColor: "#ddd",
+    marginTop: 15,
+    padding: 14,
+    height: 140,
+    borderRadius: 12,
+    textAlignVertical: "top",
+  },
+});
 
 export default HomeScreen;

@@ -1,8 +1,7 @@
-import React, { useState } from "react";
-import Pdf from "react-native-pdf";
+import { Ionicons } from "@expo/vector-icons";
 import * as FileSystem from "expo-file-system";
-import * as Progress from "react-native-progress";
 import { useLocalSearchParams, useNavigation } from "expo-router";
+import React, { useState } from "react";
 import {
   ActivityIndicator,
   Modal,
@@ -13,13 +12,12 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import Pdf from "react-native-pdf";
+import * as Progress from "react-native-progress";
 
 const PublicationPdfPreview = () => {
   const { url: downloadLink, name } = useLocalSearchParams();
   const navigation = useNavigation();
-
-  console.log("downloadLink ==>", downloadLink);
 
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -90,7 +88,7 @@ const PublicationPdfPreview = () => {
             onLoadComplete={(numberOfPages, filePath) => {}}
             onPageChanged={(page, numberOfPages) => {}}
             onError={(error) => {
-              console.log(error);
+              // console.log(error);
             }}
             onPressLink={(uri) => {}}
             onLoadProgress={() => "Loading"}

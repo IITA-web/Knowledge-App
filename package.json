@@ -14,7 +14,9 @@
     "androidBuildProduction": "eas build --profile production --platform android",
     "iosBuildDev": "eas build --profile development --platform ios",
     "iosBuildPreview": "eas build --profile preview --platform ios",
-    "iosBuildProduction": "eas build --profile production --platform ios"
+    "iosBuildProduction": "eas build --profile production --platform ios",
+    "updatePreview": "eas update --channel preview",
+    "updateProduction": "eas update --channel production"
   },
   "dependencies": {
     "@config-plugins/react-native-blob-util": "^13.0.0",
@@ -33,12 +35,10 @@
     "expo-font": "~55.0.6",
     "expo-glass-effect": "~55.0.11",
     "expo-image": "~55.0.10",
-    "expo-image-picker": "~55.0.20",
     "expo-linear-gradient": "~55.0.13",
     "expo-linking": "~55.0.15",
     "expo-localization": "~55.0.15",
     "expo-location": "~55.1.9",
-    "expo-media-library": "~55.0.16",
     "expo-router": "~55.0.14",
     "expo-sharing": "~55.0.18",
     "expo-splash-screen": "~55.0.20",
@@ -46,7 +46,6 @@
     "expo-symbols": "~55.0.8",
     "expo-system-ui": "~55.0.17",
     "expo-updates": "~55.0.21",
-    "expo-video": "~55.0.16",
     "expo-web-browser": "~55.0.15",
     "i18n-js": "^4.5.3",
     "lottie-react-native": "^7.3.6",

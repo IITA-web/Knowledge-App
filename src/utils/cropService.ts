@@ -4,7 +4,6 @@ const BASE = "https://www.iita.org/wp-json/wp/v2";
 const YT_KEY = "AIzaSyAi5WzxpF2E6wmz-e1yu2nAg9lQWEM43Zg";
 const YT_CHANNEL_ID = "UCWOAtXUd8F-MCx2-AfBE_8A";
 
-// ─── Generic WP REST fetcher ──────────────────────────────────────────────────
 export const wpFetch = async <T = unknown>(
   endpoint: string,
   params: Record<string, string | number | boolean> = {}
@@ -102,25 +101,20 @@ export const getItemImage = (item: unknown): string => {
   return "https://iita.org/wp-content/uploads/2016/06/IITA-default.jpg";
 };
 
-// ─── Public API ───────────────────────────────────────────────────────────────
-
-// You can optionally pass a type when calling these:
-// fetchCropNews<MyType>()
-
 export const fetchCropNews = <T = unknown>(cropKey: string, page = 1) =>
   wpFetch<T>("news-item", { search: cropKey, page });
 
 export const fetchCropPublications = <T = unknown>(cropKey: string, page = 1) =>
-  wpFetch<T>("iitadocument", { search: cropKey, page });
+  wpFetch<T>("iita-documents", { search: cropKey, page });
 
 export const fetchCropDigitalTools = <T = unknown>(cropKey: string, page = 1) =>
-  wpFetch<T>("iita-digital-tools", { search: cropKey, page });
+  wpFetch<T>("digital-tool", { search: cropKey, page });
 
 export const fetchCropEvents = <T = unknown>(cropKey: string, page = 1) =>
-  wpFetch<T>("ajde_events", { search: cropKey, page });
+  wpFetch<T>("event", { search: cropKey, page });
 
 export const fetchCropProjects = <T = unknown>(cropKey: string, page = 1) =>
-  wpFetch<T>("iita-project", { search: cropKey, page });
+  wpFetch<T>("project", { search: cropKey, page });
 
 export const fetchCropFeatured = <T = unknown>(cropKey: string, page = 1) =>
   wpFetch<T>("featured-post", { search: cropKey, page });
@@ -131,8 +125,6 @@ export const fetchCropPictures = <T = unknown>(cropKey: string, page = 1) =>
     page,
     media_type: "image",
   });
-
-// ─── YouTube API ──────────────────────────────────────────────────────────────
 
 type YouTubeSearchResponse<T = unknown> = {
   items: T[];

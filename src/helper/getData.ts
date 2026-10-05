@@ -5,8 +5,6 @@ export const fetchNews = async (page: any, catId: any) => {
     catId ? `&categories=${catId}` : ""
   }`;
 
-  console.log("fetch nrws url ==>>> ", URL);
-
   try {
     const response = await axiosService.get(URL);
     return response.data;

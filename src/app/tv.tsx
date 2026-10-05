@@ -1,3 +1,5 @@
+import { useLanguage } from "@/context/LanguageContext";
+import i18n from "@/i18n";
 import { Ionicons } from "@expo/vector-icons";
 import { router, useNavigation } from "expo-router";
 import React, { useCallback, useEffect, useRef, useState } from "react";
@@ -20,7 +22,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import YoutubePlayer from "react-native-youtube-iframe";
 import { screenWidth } from "../utils/Dimension";
 
-// ─── Design Tokens ─────────────────────────────────────────────────────────────
 const COLORS = {
   bg: "rgb(242, 242, 242)",
   surface: "#FFFFFF",
@@ -37,7 +38,6 @@ const COLORS = {
   playerBg: "#0F0F0F",
 };
 
-// ─── Constants ─────────────────────────────────────────────────────────────────
 const CARD_GAP = 12;
 const H_PAD = 16;
 const CARD_WIDTH = (screenWidth - H_PAD * 2 - CARD_GAP) / 2;
@@ -72,6 +72,8 @@ const safeThumbUrl = (item: any) => {
 
 // ─── Search Modal ──────────────────────────────────────────────────────────────
 const SearchModal = ({ visible, onClose, onSearch }: any) => {
+  const { language } = useLanguage();
+  const t = (key: string) => i18n.t(`tv.${key}`);
   const [query, setQuery] = useState("");
   const [recent, setRecent] = useState(["IITA TV", "crop science", "agronomy"]);
   const inputRef = useRef<TextInput | null>(null);
@@ -185,7 +187,7 @@ const SearchModal = ({ visible, onClose, onSearch }: any) => {
                   ref={inputRef}
                   value={query}
                   onChangeText={setQuery}
-                  placeholder="Search IITA TV…"
+                  placeholder={t("searchPlaceholder")}
                   placeholderTextColor={COLORS.textDim}
                   style={{
                     flex: 1,
@@ -223,7 +225,7 @@ const SearchModal = ({ visible, onClose, onSearch }: any) => {
                     fontSize: 13,
                   }}
                 >
-                  Go
+                  {t("go")}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -253,7 +255,7 @@ const SearchModal = ({ visible, onClose, onSearch }: any) => {
                       fontWeight: "600",
                     }}
                   >
-                    Recent
+                    {t("recent")}
                   </Text>
                   <TouchableOpacity onPress={() => setRecent([])}>
                     <Text
@@ -263,7 +265,7 @@ const SearchModal = ({ visible, onClose, onSearch }: any) => {
                         fontWeight: "600",
                       }}
                     >
-                      Clear all
+                      {t("clearAll")}
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -320,6 +322,8 @@ const SearchModal = ({ visible, onClose, onSearch }: any) => {
 
 // ─── Featured Player ───────────────────────────────────────────────────────────
 const FeaturedPlayer = () => {
+  const { language } = useLanguage();
+  const t = (key: string) => i18n.t(`tv.${key}`);
   const [playing, setPlaying] = useState(false);
   const [ready, setReady] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -353,7 +357,6 @@ const FeaturedPlayer = () => {
         elevation: 8,
       }}
     >
-      {/* Top bar */}
       <View
         style={{
           flexDirection: "row",
@@ -383,7 +386,7 @@ const FeaturedPlayer = () => {
             flex: 1,
           }}
         >
-          Featured
+          {t("featured")}
         </Text>
         <View
           style={{
@@ -409,8 +412,6 @@ const FeaturedPlayer = () => {
           </Text>
         </View>
       </View>
-
-      {/* Player */}
       <Animated.View style={{ opacity: ready ? fadeAnim : 1 }}>
         <YoutubePlayer
           height={screenWidth * 0.52}
@@ -421,8 +422,6 @@ const FeaturedPlayer = () => {
           webViewStyle={{ opacity: 0.99 }}
         />
       </Animated.View>
-
-      {/* Loading placeholder */}
       {!ready && (
         <View
           style={{
@@ -494,7 +493,6 @@ const PlaylistCard = ({ item, onPress, index }: any) => {
       useNativeDriver: true,
       tension: 200,
     }).start();
-
   const count = item?.contentDetails?.itemCount;
 
   return (
@@ -521,7 +519,6 @@ const PlaylistCard = ({ item, onPress, index }: any) => {
           elevation: 3,
         }}
       >
-        {/* Thumbnail */}
         <View style={{ position: "relative" }}>
           <Image
             source={{ uri: encodeURI(safeThumbUrl(item)) }}
@@ -532,7 +529,6 @@ const PlaylistCard = ({ item, onPress, index }: any) => {
             }}
             resizeMode="cover"
           />
-          {/* Play overlay */}
           <View
             style={{
               position: "absolute",
@@ -563,8 +559,6 @@ const PlaylistCard = ({ item, onPress, index }: any) => {
               />
             </View>
           </View>
-
-          {/* Video count badge */}
           {count != null && (
             <View
               style={{
@@ -589,8 +583,6 @@ const PlaylistCard = ({ item, onPress, index }: any) => {
             </View>
           )}
         </View>
-
-        {/* Info */}
         <View style={{ padding: 10 }}>
           <Text
             numberOfLines={2}
@@ -626,7 +618,6 @@ const PlaylistCard = ({ item, onPress, index }: any) => {
 // ─── Skeleton Card ─────────────────────────────────────────────────────────────
 const SkeletonCard = ({ index }: any) => {
   const pulseAnim = useRef(new Animated.Value(0.4)).current;
-
   useEffect(() => {
     Animated.loop(
       Animated.sequence([
@@ -644,7 +635,6 @@ const SkeletonCard = ({ index }: any) => {
       ])
     ).start();
   }, []);
-
   return (
     <Animated.View
       style={{
@@ -697,7 +687,6 @@ const SkeletonCard = ({ index }: any) => {
 // ─── Skeleton Player ───────────────────────────────────────────────────────────
 const SkeletonPlayer = () => {
   const pulseAnim = useRef(new Animated.Value(0.4)).current;
-
   useEffect(() => {
     Animated.loop(
       Animated.sequence([
@@ -714,7 +703,6 @@ const SkeletonPlayer = () => {
       ])
     ).start();
   }, []);
-
   return (
     <Animated.View
       style={{
@@ -732,219 +720,236 @@ const SkeletonPlayer = () => {
 };
 
 // ─── Header ────────────────────────────────────────────────────────────────────
-const Header = ({ onBack, onSearch, searchQuery }: any) => (
-  <View
-    style={{
-      flexDirection: "row",
-      alignItems: "center",
-      paddingHorizontal: 16,
-      paddingVertical: 12,
-      borderBottomWidth: 1,
-      borderBottomColor: COLORS.border,
-      backgroundColor: COLORS.bg,
-      gap: 12,
-    }}
-  >
-    <TouchableOpacity
-      onPress={onBack}
+const Header = ({ onBack, onSearch, searchQuery }: any) => {
+  const { language } = useLanguage();
+  const t = (key: string) => i18n.t(`tv.${key}`);
+  return (
+    <View
       style={{
-        width: 38,
-        height: 38,
-        borderRadius: 10,
-        backgroundColor: COLORS.surface,
-        justifyContent: "center",
+        flexDirection: "row",
         alignItems: "center",
-        shadowColor: COLORS.shadow,
-        shadowOpacity: 1,
-        shadowRadius: 4,
-        elevation: 2,
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: COLORS.border,
+        backgroundColor: COLORS.bg,
+        gap: 12,
       }}
     >
-      <Ionicons name="arrow-back" size={20} color={COLORS.text} />
-    </TouchableOpacity>
-
-    <View style={{ flex: 1 }}>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-        <Text
-          style={{
-            color: COLORS.text,
-            fontSize: 18,
-            fontWeight: "800",
-            letterSpacing: -0.3,
-          }}
-        >
-          IITA TV
-        </Text>
-        <View
-          style={{
-            backgroundColor: COLORS.accentSoft,
-            paddingHorizontal: 8,
-            paddingVertical: 2,
-            borderRadius: 8,
-          }}
-        >
+      <TouchableOpacity
+        onPress={onBack}
+        style={{
+          width: 38,
+          height: 38,
+          borderRadius: 10,
+          backgroundColor: COLORS.surface,
+          justifyContent: "center",
+          alignItems: "center",
+          shadowColor: COLORS.shadow,
+          shadowOpacity: 1,
+          shadowRadius: 4,
+          elevation: 2,
+        }}
+      >
+        <Ionicons name="arrow-back" size={20} color={COLORS.text} />
+      </TouchableOpacity>
+      <View style={{ flex: 1 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+          <Text
+            style={{
+              color: COLORS.text,
+              fontSize: 18,
+              fontWeight: "800",
+              letterSpacing: -0.3,
+            }}
+          >
+            IITA TV
+          </Text>
+          <View
+            style={{
+              backgroundColor: COLORS.accentSoft,
+              paddingHorizontal: 8,
+              paddingVertical: 2,
+              borderRadius: 8,
+            }}
+          >
+            <Text
+              style={{
+                color: COLORS.accent,
+                fontSize: 10,
+                fontWeight: "700",
+                letterSpacing: 0.5,
+              }}
+            >
+              {t("live")}
+            </Text>
+          </View>
+        </View>
+        {searchQuery ? (
           <Text
             style={{
               color: COLORS.accent,
-              fontSize: 10,
-              fontWeight: "700",
-              letterSpacing: 0.5,
+              fontSize: 11,
+              fontWeight: "600",
+              letterSpacing: 0.4,
             }}
           >
-            LIVE
+            "{searchQuery}"
           </Text>
-        </View>
+        ) : null}
       </View>
-      {searchQuery ? (
-        <Text
-          style={{
-            color: COLORS.accent,
-            fontSize: 11,
-            fontWeight: "600",
-            letterSpacing: 0.4,
-          }}
-        >
-          "{searchQuery}"
-        </Text>
-      ) : null}
+      <TouchableOpacity
+        onPress={onSearch}
+        style={{
+          width: 38,
+          height: 38,
+          borderRadius: 10,
+          backgroundColor: COLORS.surface,
+          borderWidth: 1,
+          borderColor: COLORS.border,
+          justifyContent: "center",
+          alignItems: "center",
+          shadowColor: COLORS.shadow,
+          shadowOpacity: 1,
+          shadowRadius: 4,
+          elevation: 2,
+        }}
+      >
+        <Ionicons name="search-outline" size={19} color={COLORS.text} />
+      </TouchableOpacity>
     </View>
-
-    <TouchableOpacity
-      onPress={onSearch}
-      style={{
-        width: 38,
-        height: 38,
-        borderRadius: 10,
-        backgroundColor: COLORS.surface,
-        borderWidth: 1,
-        borderColor: COLORS.border,
-        justifyContent: "center",
-        alignItems: "center",
-        shadowColor: COLORS.shadow,
-        shadowOpacity: 1,
-        shadowRadius: 4,
-        elevation: 2,
-      }}
-    >
-      <Ionicons name="search-outline" size={19} color={COLORS.text} />
-    </TouchableOpacity>
-  </View>
-);
+  );
+};
 
 // ─── Section Label ─────────────────────────────────────────────────────────────
-const SectionLabel = ({ count, searchQuery }: any) => (
-  <View
-    style={{
-      flexDirection: "row",
-      alignItems: "center",
-      paddingHorizontal: H_PAD,
-      paddingTop: 4,
-      paddingBottom: 12,
-      gap: 8,
-    }}
-  >
+const SectionLabel = ({ count, searchQuery }: any) => {
+  const { language } = useLanguage();
+  const t = (key: string) => i18n.t(`tv.${key}`);
+  return (
     <View
       style={{
-        width: 3,
-        height: 16,
-        borderRadius: 2,
-        backgroundColor: COLORS.accent,
+        flexDirection: "row",
+        alignItems: "center",
+        paddingHorizontal: H_PAD,
+        paddingTop: 4,
+        paddingBottom: 12,
+        gap: 8,
       }}
-    />
-    <Text
-      style={{ color: COLORS.text, fontSize: 14, fontWeight: "700", flex: 1 }}
     >
-      {searchQuery ? "Search Results" : "All Playlists"}
-    </Text>
-    {count > 0 && (
       <View
         style={{
-          backgroundColor: COLORS.accentSoft,
-          paddingHorizontal: 10,
-          paddingVertical: 3,
-          borderRadius: 20,
+          width: 3,
+          height: 16,
+          borderRadius: 2,
+          backgroundColor: COLORS.accent,
         }}
+      />
+      <Text
+        style={{ color: COLORS.text, fontSize: 14, fontWeight: "700", flex: 1 }}
       >
-        <Text style={{ color: COLORS.accent, fontSize: 11, fontWeight: "700" }}>
-          {count}
-        </Text>
-      </View>
-    )}
-  </View>
-);
+        {searchQuery ? t("searchResults") : t("allPlaylists")}
+      </Text>
+      {count > 0 && (
+        <View
+          style={{
+            backgroundColor: COLORS.accentSoft,
+            paddingHorizontal: 10,
+            paddingVertical: 3,
+            borderRadius: 20,
+          }}
+        >
+          <Text
+            style={{ color: COLORS.accent, fontSize: 11, fontWeight: "700" }}
+          >
+            {count}
+          </Text>
+        </View>
+      )}
+    </View>
+  );
+};
 
 // ─── Empty State ───────────────────────────────────────────────────────────────
-const EmptyState = ({ searchQuery, onClear }: any) => (
-  <View
-    style={{
-      flex: 1,
-      justifyContent: "center",
-      alignItems: "center",
-      paddingBottom: 60,
-      paddingTop: 20,
-    }}
-  >
+const EmptyState = ({ searchQuery, onClear }: any) => {
+  const { language } = useLanguage();
+  const t = (key: string, opts?: object) => i18n.t(`tv.${key}`, opts);
+  return (
     <View
       style={{
-        width: 80,
-        height: 80,
-        borderRadius: 24,
-        backgroundColor: COLORS.accentSoft,
+        flex: 1,
         justifyContent: "center",
         alignItems: "center",
-        marginBottom: 16,
+        paddingBottom: 60,
+        paddingTop: 20,
       }}
     >
-      <Ionicons name="tv-outline" size={36} color={COLORS.accent} />
-    </View>
-    <Text
-      style={{
-        color: COLORS.text,
-        fontSize: 17,
-        fontWeight: "700",
-        marginBottom: 6,
-      }}
-    >
-      {searchQuery ? "No Results Found" : "No Playlists Available"}
-    </Text>
-    <Text
-      style={{
-        color: COLORS.textMuted,
-        fontSize: 14,
-        textAlign: "center",
-        paddingHorizontal: 40,
-        marginBottom: 20,
-      }}
-    >
-      {searchQuery
-        ? `No playlists matched "${searchQuery}". Try a different term.`
-        : "IITA TV playlists will appear here once available."}
-    </Text>
-    {searchQuery && (
-      <TouchableOpacity
-        onPress={onClear}
+      <View
         style={{
-          flexDirection: "row",
+          width: 80,
+          height: 80,
+          borderRadius: 24,
+          backgroundColor: COLORS.accentSoft,
+          justifyContent: "center",
           alignItems: "center",
-          gap: 6,
-          paddingHorizontal: 20,
-          paddingVertical: 10,
-          backgroundColor: COLORS.accent,
-          borderRadius: 10,
+          marginBottom: 16,
         }}
       >
-        <Ionicons name="close" size={16} color={COLORS.white} />
-        <Text style={{ color: COLORS.white, fontWeight: "700", fontSize: 14 }}>
-          Clear Search
-        </Text>
-      </TouchableOpacity>
-    )}
-  </View>
-);
+        <Ionicons name="tv-outline" size={36} color={COLORS.accent} />
+      </View>
+      <Text
+        style={{
+          color: COLORS.text,
+          fontSize: 17,
+          fontWeight: "700",
+          marginBottom: 6,
+        }}
+      >
+        {searchQuery ? t("noResults") : t("noPlaylists")}
+      </Text>
+      <Text
+        style={{
+          color: COLORS.textMuted,
+          fontSize: 14,
+          textAlign: "center",
+          paddingHorizontal: 40,
+          marginBottom: 20,
+        }}
+      >
+        {searchQuery
+          ? t("noResultsDesc", { query: searchQuery })
+          : t("noPlaylistsDesc")}
+      </Text>
+      {searchQuery && (
+        <TouchableOpacity
+          onPress={onClear}
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 6,
+            paddingHorizontal: 20,
+            paddingVertical: 10,
+            backgroundColor: COLORS.accent,
+            borderRadius: 10,
+          }}
+        >
+          <Ionicons name="close" size={16} color={COLORS.white} />
+          <Text
+            style={{ color: COLORS.white, fontWeight: "700", fontSize: 14 }}
+          >
+            {t("clearSearch")}
+          </Text>
+        </TouchableOpacity>
+      )}
+    </View>
+  );
+};
 
 // ─── Main Screen ───────────────────────────────────────────────────────────────
 const TV = () => {
   const navigation = useNavigation();
+  const { language } = useLanguage();
+  const t = (key: string, opts?: object) => i18n.t(`tv.${key}`, opts);
+
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -953,36 +958,37 @@ const TV = () => {
   const [pageToken, setPageToken] = useState("");
   const [data, setData] = useState([]);
 
-  // ── Fetch Playlists ─────────────────────────────────────────────────────────
-  const fetchPlaylists = useCallback(async (append = false) => {
-    if (!append) setIsLoading(true);
-    else setLoadingMore(true);
+  const fetchPlaylists = useCallback(
+    async (append = false) => {
+      if (!append) setIsLoading(true);
+      else setLoadingMore(true);
+      try {
+        const response = await fetch(PLAYLISTS_URL);
+        const json = await response.json();
+        const items = json.items ?? [];
 
-    try {
-      const response = await fetch(PLAYLISTS_URL);
-      const json = await response.json();
-      const items = json.items ?? [];
-      setData((prev) => (append ? [...prev, ...items] : items));
-      setPageToken(json.nextPageToken ?? "");
-    } catch (error) {
-      Vibration.vibrate();
-      Alert.alert(
-        "Connection Error",
-        "Please check your internet connection and try again.",
-        [
-          { text: "Cancel", style: "cancel" },
-          { text: "Retry", onPress: () => fetchPlaylists(append) },
-        ],
-        { cancelable: false }
-      );
-    } finally {
-      setIsLoading(false);
-      setLoadingMore(false);
-      setRefreshing(false);
-    }
-  }, []);
+        setData((prev) => (append ? [...prev, ...items] : items));
+        setPageToken(json.nextPageToken ?? "");
+      } catch (error) {
+        Vibration.vibrate();
+        Alert.alert(
+          t("connectionError"),
+          t("connectionErrorMsg"),
+          [
+            { text: t("cancel"), style: "cancel" },
+            { text: t("retry"), onPress: () => fetchPlaylists(append) },
+          ],
+          { cancelable: false }
+        );
+      } finally {
+        setIsLoading(false);
+        setLoadingMore(false);
+        setRefreshing(false);
+      }
+    },
+    [language]
+  );
 
-  // ── Search ──────────────────────────────────────────────────────────────────
   const searchPlaylists = useCallback(
     async (query: any, token = "", append = false) => {
       if (!query.trim()) {
@@ -991,35 +997,31 @@ const TV = () => {
       }
       if (!append) setIsLoading(true);
       else setLoadingMore(true);
-
       try {
         const response = await fetch(SEARCH_URL(query, token));
         const json = await response.json();
         const items = (json.items ?? []).filter(
           (v: any) => v.snippet?.title !== "Private video"
         );
+
         setData((prev) => (append ? [...prev, ...items] : items));
         setPageToken(json.nextPageToken ?? "");
       } catch (error) {
         Vibration.vibrate();
-        Alert.alert(
-          "Connection Error",
-          "Please check your internet connection.",
-          [
-            { text: "Cancel", style: "cancel" },
-            {
-              text: "Retry",
-              onPress: () => searchPlaylists(query, token, append),
-            },
-          ]
-        );
+        Alert.alert(t("connectionError"), t("connectionErrorMsgShort"), [
+          { text: t("cancel"), style: "cancel" },
+          {
+            text: t("retry"),
+            onPress: () => searchPlaylists(query, token, append),
+          },
+        ]);
       } finally {
         setIsLoading(false);
         setLoadingMore(false);
         setRefreshing(false);
       }
     },
-    [fetchPlaylists]
+    [fetchPlaylists, language]
   );
 
   useEffect(() => {
@@ -1031,20 +1033,17 @@ const TV = () => {
     setPageToken("");
     searchPlaylists(query);
   };
-
   const handleClearSearch = () => {
     setSearchQuery("");
     setPageToken("");
     fetchPlaylists();
   };
-
   const handleRefresh = () => {
     setRefreshing(true);
     setPageToken("");
     if (searchQuery) searchPlaylists(searchQuery);
     else fetchPlaylists();
   };
-
   const handleLoadMore = () => {
     if (loadingMore || !pageToken) return;
     if (searchQuery) searchPlaylists(searchQuery, pageToken, true);
@@ -1098,14 +1097,12 @@ const TV = () => {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.bg }}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.bg} />
-
       <Header
         onBack={() => navigation.goBack()}
         onSearch={() => setSearchModalVisible(true)}
         searchQuery={searchQuery}
       />
 
-      {/* Active search banner */}
       {searchQuery ? (
         <View
           style={{
@@ -1120,7 +1117,7 @@ const TV = () => {
         >
           <Ionicons name="search" size={14} color={COLORS.accent} />
           <Text style={{ color: COLORS.textMuted, fontSize: 13, flex: 1 }}>
-            Results for{" "}
+            {t("resultsFor")}{" "}
             <Text style={{ color: COLORS.text, fontWeight: "700" }}>
               "{searchQuery}"
             </Text>
@@ -1138,7 +1135,9 @@ const TV = () => {
             }}
           >
             <Ionicons name="close" size={12} color={COLORS.textMuted} />
-            <Text style={{ color: COLORS.textMuted, fontSize: 12 }}>Clear</Text>
+            <Text style={{ color: COLORS.textMuted, fontSize: 12 }}>
+              {t("clear")}
+            </Text>
           </TouchableOpacity>
         </View>
       ) : null}
@@ -1171,13 +1170,21 @@ const TV = () => {
               item={item}
               index={index}
               onPress={() =>
-                router.push({
-                  pathname: "/tvplaylistitems",
-                  params: {
-                    id: String(item?.id ?? ""),
-                    otherParam: item?.snippet?.title ?? "",
-                  },
-                })
+                searchQuery
+                  ? router.push({
+                      pathname: "/videoplay",
+                      params: {
+                        id: String(item?.id?.videoId ?? ""),
+                        otherParam: item?.snippet?.title ?? "",
+                      },
+                    })
+                  : router.push({
+                      pathname: "/tvplaylistitems",
+                      params: {
+                        id: String(item?.id ?? ""),
+                        otherParam: item?.snippet?.title ?? "",
+                      },
+                    })
               }
             />
           )}

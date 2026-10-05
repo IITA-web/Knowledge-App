@@ -1,3 +1,5 @@
+import { useLanguage } from "@/context/LanguageContext";
+import i18n from "@/i18n";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useRef, useState } from "react";
@@ -41,18 +43,28 @@ const COLORS = {
   playerBg: "#0F0F0F",
 };
 
-const SORT_OPTIONS = [
-  { key: "default", label: "Default", icon: "grid-outline" },
-  { key: "az", label: "A → Z", icon: "text-outline" },
-  { key: "za", label: "Z → A", icon: "text-outline" },
-  { key: "most", label: "Most Photos", icon: "images-outline" },
-  { key: "least", label: "Least Photos", icon: "image-outline" },
+// Sort option keys — labels resolved via i18n at render time
+const SORT_OPTION_KEYS = [
+  { key: "default", labelKey: "photoAlbum.sort.default", icon: "grid-outline" },
+  { key: "az", labelKey: "photoAlbum.sort.az", icon: "text-outline" },
+  { key: "za", labelKey: "photoAlbum.sort.za", icon: "text-outline" },
+  {
+    key: "most",
+    labelKey: "photoAlbum.sort.mostPhotos",
+    icon: "images-outline",
+  },
+  {
+    key: "least",
+    labelKey: "photoAlbum.sort.leastPhotos",
+    icon: "image-outline",
+  },
 ];
 
 const RECENT_SEED = ["Landscapes", "Portraits", "Architecture", "Wildlife"];
 
-// ─── Search Modal (YouTube-style) ──────────────────────────────────────────────
+// ─── Search Modal ──────────────────────────────────────────────────────────────
 const SearchModal = ({ visible, onClose, onSearch, currentTerm }: any) => {
+  const { language } = useLanguage();
   const insets = useSafeAreaInsets();
   const inputRef = useRef<TextInput | null>(null);
   const slideAnim = useRef(new Animated.Value(-60)).current;
@@ -156,7 +168,11 @@ const SearchModal = ({ visible, onClose, onSearch, currentTerm }: any) => {
               <TextInput
                 ref={inputRef}
                 style={styles.searchInput}
-                placeholder="Search albums…"
+                placeholder={
+                  language
+                    ? i18n.t("photoAlbum.searchPlaceholder")
+                    : "Search albums…"
+                }
                 placeholderTextColor={COLORS.textDim}
                 value={localTerm}
                 onChangeText={setLocalTerm}
@@ -182,7 +198,7 @@ const SearchModal = ({ visible, onClose, onSearch, currentTerm }: any) => {
 
           <View style={styles.searchDivider} />
 
-          {/* Inline suggestions */}
+          {/* Suggestions */}
           {suggestions.length > 0 && (
             <View style={styles.suggestionSection}>
               {suggestions.map((s: any) => (
@@ -222,7 +238,7 @@ const SearchModal = ({ visible, onClose, onSearch, currentTerm }: any) => {
             </View>
           )}
 
-          {/* "Search for X" row */}
+          {/* Search for X row */}
           {localTerm.length > 1 && suggestions.length === 0 && (
             <TouchableOpacity
               style={styles.searchDirectRow}
@@ -235,7 +251,7 @@ const SearchModal = ({ visible, onClose, onSearch, currentTerm }: any) => {
                 style={{ marginRight: 12 }}
               />
               <Text style={styles.searchDirectText}>
-                Search for "
+                {language ? i18n.t("photoAlbum.searchFor") : "Search for"} "
                 <Text style={{ color: COLORS.accent }}>{localTerm}</Text>"
               </Text>
             </TouchableOpacity>
@@ -245,9 +261,13 @@ const SearchModal = ({ visible, onClose, onSearch, currentTerm }: any) => {
           {recents.length > 0 && localTerm.length === 0 && (
             <View style={styles.recentSection}>
               <View style={styles.recentHeader}>
-                <Text style={styles.recentTitle}>Recent</Text>
+                <Text style={styles.recentTitle}>
+                  {language ? i18n.t("photoAlbum.recent") : "Recent"}
+                </Text>
                 <TouchableOpacity onPress={() => setRecents([])}>
-                  <Text style={styles.clearAllText}>Clear all</Text>
+                  <Text style={styles.clearAllText}>
+                    {language ? i18n.t("photoAlbum.clearAll") : "Clear all"}
+                  </Text>
                 </TouchableOpacity>
               </View>
               {recents.map((r) => (
@@ -283,6 +303,7 @@ const SearchModal = ({ visible, onClose, onSearch, currentTerm }: any) => {
 
 // ─── Sort Sheet ────────────────────────────────────────────────────────────────
 const SortSheet = ({ visible, onClose, activeSort, onSelect }: any) => {
+  const { language } = useLanguage();
   const insets = useSafeAreaInsets();
   const slideAnim = useRef(new Animated.Value(300)).current;
 
@@ -314,8 +335,10 @@ const SortSheet = ({ visible, onClose, activeSort, onSelect }: any) => {
           ]}
         >
           <View style={styles.sheetHandle} />
-          <Text style={styles.sheetTitle}>Sort Albums</Text>
-          {SORT_OPTIONS.map((opt: any) => {
+          <Text style={styles.sheetTitle}>
+            {language ? i18n.t("photoAlbum.sortAlbums") : "Sort Albums"}
+          </Text>
+          {SORT_OPTION_KEYS.map((opt) => {
             const isActive = activeSort === opt.key;
             return (
               <TouchableOpacity
@@ -333,7 +356,7 @@ const SortSheet = ({ visible, onClose, activeSort, onSelect }: any) => {
                   ]}
                 >
                   <Ionicons
-                    name={opt.icon}
+                    name={opt.icon as any}
                     size={18}
                     color={isActive ? COLORS.white : COLORS.textMuted}
                   />
@@ -341,7 +364,7 @@ const SortSheet = ({ visible, onClose, activeSort, onSelect }: any) => {
                 <Text
                   style={[styles.sortLabel, isActive && styles.sortLabelActive]}
                 >
-                  {opt.label}
+                  {language ? i18n.t(opt.labelKey) : opt.key}
                 </Text>
                 {isActive && (
                   <Ionicons
@@ -362,6 +385,7 @@ const SortSheet = ({ visible, onClose, activeSort, onSelect }: any) => {
 
 // ─── Album Card ────────────────────────────────────────────────────────────────
 const AlbumCard = ({ item, onPress, index }: any) => {
+  const { language } = useLanguage();
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -395,9 +419,15 @@ const AlbumCard = ({ item, onPress, index }: any) => {
           : rawUrl
       )
     : "https://s.ytimg.com/yts/img/no_thumbnail-vfl4t3-4R.jpg";
-
-  const albumTitle = item?.title?._content || item?.title || "Untitled";
+  const albumTitle =
+    item?.title?._content ||
+    item?.title ||
+    (language ? i18n.t("photoAlbum.untitled") : "Untitled");
   const photoCount = item?.count_photos ?? 0;
+  const photoLabel =
+    photoCount === 1
+      ? `1 ${language ? i18n.t("photoAlbum.photo") : "photo"}`
+      : `${photoCount} ${language ? i18n.t("photoAlbum.photos") : "photos"}`;
 
   return (
     <Animated.View
@@ -414,7 +444,6 @@ const AlbumCard = ({ item, onPress, index }: any) => {
         onPressOut={onPressOut}
         style={styles.card}
       >
-        {/* Thumbnail */}
         <View style={styles.thumbnailWrap}>
           <Image
             source={{ uri: imageUri }}
@@ -428,17 +457,13 @@ const AlbumCard = ({ item, onPress, index }: any) => {
           </View>
         </View>
 
-        {/* Info */}
         <View style={styles.cardInfo}>
           <Text style={styles.cardTitle} numberOfLines={1} ellipsizeMode="tail">
-            {/* {albumTitle} */}
-            {item.id}
+            {item?.title?._content || item?.title}
           </Text>
           <View style={styles.cardMeta}>
             <View style={styles.cardMetaDot} />
-            <Text style={styles.cardMetaText}>
-              {photoCount} {photoCount === 1 ? "photo" : "photos"}
-            </Text>
+            <Text style={styles.cardMetaText}>{photoLabel}</Text>
           </View>
         </View>
 
@@ -459,92 +484,120 @@ const TopBar = ({
   onSortOpen,
   activeSort,
   onBack,
-}: any) => (
-  <View style={styles.topBar}>
-    <TouchableOpacity
-      onPress={onBack}
-      style={{
-        width: 38,
-        height: 38,
-        borderRadius: 10,
-        backgroundColor: COLORS.surface,
-        justifyContent: "center",
-        alignItems: "center",
-        shadowColor: COLORS.shadow,
-        shadowOpacity: 1,
-        shadowRadius: 4,
-        elevation: 2,
-      }}
-    >
-      <Ionicons name="arrow-back" size={20} color={COLORS.text} />
-    </TouchableOpacity>
-    <View>
-      <Text style={styles.topBarTitle}>Photo Gallery</Text>
-      {searchTerm ? (
-        <TouchableOpacity
-          style={styles.activeSearchChip}
-          onPress={onClearSearch}
-        >
-          <Text style={styles.activeSearchChipText}>"{searchTerm}"</Text>
-          <Ionicons name="close" size={13} color={COLORS.accent} />
-        </TouchableOpacity>
-      ) : (
-        <Text style={styles.topBarSub}>
-          {albumCount} {albumCount === 1 ? "album" : "albums"}
-        </Text>
-      )}
-    </View>
+}: any) => {
+  const { language } = useLanguage();
+  const albumLabel =
+    albumCount === 1
+      ? `1 ${language ? i18n.t("photoAlbum.album") : "album"}`
+      : `${albumCount} ${language ? i18n.t("photoAlbum.albums") : "albums"}`;
 
-    <View style={styles.topBarActions}>
+  return (
+    <View style={styles.topBar}>
       <TouchableOpacity
-        style={[
-          styles.iconBtn,
-          activeSort !== "default" && styles.iconBtnActive,
-        ]}
-        onPress={onSortOpen}
+        onPress={onBack}
+        style={{
+          width: 38,
+          height: 38,
+          borderRadius: 10,
+          backgroundColor: COLORS.surface,
+          justifyContent: "center",
+          alignItems: "center",
+          shadowColor: COLORS.shadow,
+          shadowOpacity: 1,
+          shadowRadius: 4,
+          elevation: 2,
+        }}
       >
-        <Ionicons
-          name="options-outline"
-          size={20}
-          color={activeSort !== "default" ? COLORS.accent : COLORS.text}
-        />
-        {activeSort !== "default" && <View style={styles.iconBtnDot} />}
+        <Ionicons name="arrow-back" size={20} color={COLORS.text} />
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.iconBtn} onPress={onSearchOpen}>
-        <Ionicons name="search-outline" size={20} color={COLORS.text} />
-      </TouchableOpacity>
+      <View>
+        <Text style={styles.topBarTitle}>
+          {language ? i18n.t("photoAlbum.screenTitle") : "Photo Gallery"}
+        </Text>
+        {searchTerm ? (
+          <TouchableOpacity
+            style={styles.activeSearchChip}
+            onPress={onClearSearch}
+          >
+            <Text style={styles.activeSearchChipText}>"{searchTerm}"</Text>
+            <Ionicons name="close" size={13} color={COLORS.accent} />
+          </TouchableOpacity>
+        ) : (
+          <Text style={styles.topBarSub}>{albumLabel}</Text>
+        )}
+      </View>
+
+      <View style={styles.topBarActions}>
+        <TouchableOpacity
+          style={[
+            styles.iconBtn,
+            activeSort !== "default" && styles.iconBtnActive,
+          ]}
+          onPress={onSortOpen}
+        >
+          <Ionicons
+            name="options-outline"
+            size={20}
+            color={activeSort !== "default" ? COLORS.accent : COLORS.text}
+          />
+          {activeSort !== "default" && <View style={styles.iconBtnDot} />}
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.iconBtn} onPress={onSearchOpen}>
+          <Ionicons name="search-outline" size={20} color={COLORS.text} />
+        </TouchableOpacity>
+      </View>
     </View>
-  </View>
-);
+  );
+};
 
 // ─── Empty State ───────────────────────────────────────────────────────────────
-const EmptyState = ({ searchTerm, onClear }: any) => (
-  <View style={styles.emptyWrap}>
-    <View style={styles.emptyIcon}>
-      <Ionicons name="images-outline" size={36} color={COLORS.textDim} />
+const EmptyState = ({ searchTerm, onClear }: any) => {
+  const { language } = useLanguage();
+  return (
+    <View style={styles.emptyWrap}>
+      <View style={styles.emptyIcon}>
+        <Ionicons name="images-outline" size={36} color={COLORS.textDim} />
+      </View>
+      <Text style={styles.emptyTitle}>
+        {searchTerm
+          ? language
+            ? i18n.t("photoAlbum.noResultsTitle")
+            : "No results found"
+          : language
+          ? i18n.t("photoAlbum.noAlbumsTitle")
+          : "No albums yet"}
+      </Text>
+      <Text style={styles.emptySubtitle}>
+        {searchTerm
+          ? `${
+              language ? i18n.t("photoAlbum.noResultsBody") : "Nothing matched"
+            } "${searchTerm}"`
+          : language
+          ? i18n.t("photoAlbum.pullToRefresh")
+          : "Pull down to refresh"}
+      </Text>
+      {searchTerm ? (
+        <TouchableOpacity style={styles.emptyBtn} onPress={onClear}>
+          <Text style={styles.emptyBtnText}>
+            {language ? i18n.t("photoAlbum.clearSearch") : "Clear search"}
+          </Text>
+        </TouchableOpacity>
+      ) : null}
     </View>
-    <Text style={styles.emptyTitle}>
-      {searchTerm ? "No results found" : "No albums yet"}
-    </Text>
-    <Text style={styles.emptySubtitle}>
-      {searchTerm ? `Nothing matched "${searchTerm}"` : "Pull down to refresh"}
-    </Text>
-    {searchTerm ? (
-      <TouchableOpacity style={styles.emptyBtn} onPress={onClear}>
-        <Text style={styles.emptyBtnText}>Clear search</Text>
-      </TouchableOpacity>
-    ) : null}
-  </View>
-);
+  );
+};
 
 // ─── Footer ────────────────────────────────────────────────────────────────────
 const Footer = ({ loadingMore }: any) => {
+  const { language } = useLanguage();
   if (!loadingMore) return <View style={{ height: 32 }} />;
   return (
     <View style={styles.footerLoader}>
       <ActivityIndicator color={COLORS.accent} size="small" />
-      <Text style={styles.footerLoaderText}>Loading more…</Text>
+      <Text style={styles.footerLoaderText}>
+        {language ? i18n.t("photoAlbum.loadingMore") : "Loading more…"}
+      </Text>
     </View>
   );
 };
@@ -590,7 +643,6 @@ const PhotosAlbum = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [data, setData] = useState<any>([]);
   const [responseData, setResponseData] = useState(0);
-
   const [searchModalVisible, setSearchModalVisible] = useState(false);
   const [sortSheetVisible, setSortSheetVisible] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -604,6 +656,7 @@ const PhotosAlbum = () => {
       .then((r) => r.json())
       .then((json) => {
         const photos = json["photosets"]["photoset"];
+
         const count = Object.keys(photos).length;
         if (count > 0) {
           setData((prev: any) =>
@@ -618,15 +671,15 @@ const PhotosAlbum = () => {
       .catch(() => {
         setIsLoading(false);
         Alert.alert(
-          "Connection Error",
-          "Please check your internet connection and try again.",
+          i18n.t("photoAlbum.connectionError"),
+          i18n.t("photoAlbum.checkConnection"),
           [
             {
-              text: "Cancel",
+              text: i18n.t("photoAlbum.cancel"),
               onPress: () => router.push("/"),
               style: "cancel",
             },
-            { text: "Retry", onPress: fetchPhotos },
+            { text: i18n.t("photoAlbum.retry"), onPress: fetchPhotos },
           ],
           { cancelable: false }
         );
@@ -662,37 +715,31 @@ const PhotosAlbum = () => {
     setSearchTerm(term);
     searchPhotos(term);
   };
-
   const handleClearSearch = () => {
     setSearchTerm("");
     setSearchActive(false);
     setPage(1);
     fetchPhotos();
   };
-
   const handleRefresh = () => {
     if (searchActive) return;
     setPage(1);
     setRefreshing(true);
     fetchPhotos();
   };
-
   const handleLoadMore = () => {
     if (responseData === 30 && !searchActive) {
       setPage((p) => p + 1);
       setLoadingMore(true);
     }
   };
-
   const handleAlbumPress = (item: any) => {
     router.push({
       pathname: "/photos",
-      params: {
-        id: item.id,
-        title: item?.title?._content || item?.title,
-      },
+      params: { id: item.id, title: item?.title?._content || item?.title },
     });
   };
+
   const displayData = sortData(data, activeSort);
 
   return (
@@ -742,7 +789,6 @@ const PhotosAlbum = () => {
         onSearch={handleSearch}
         currentTerm={searchTerm}
       />
-
       <SortSheet
         visible={sortSheetVisible}
         onClose={() => setSortSheetVisible(false)}
@@ -753,14 +799,9 @@ const PhotosAlbum = () => {
   );
 };
 
-// ─── Styles ───────────────────────────────────────────────────────────────────
+// ─── Styles (unchanged) ───────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: COLORS.bg,
-  },
-
-  // Top Bar
+  safe: { flex: 1, backgroundColor: COLORS.bg },
   topBar: {
     flexDirection: "row",
     alignItems: "center",
@@ -783,11 +824,7 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     marginTop: 2,
   },
-  topBarActions: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
+  topBarActions: { flexDirection: "row", alignItems: "center", gap: 8 },
   iconBtn: {
     width: 40,
     height: 40,
@@ -830,14 +867,7 @@ const styles = StyleSheet.create({
     color: COLORS.accent,
     fontWeight: "600",
   },
-
-  // List
-  listContent: {
-    paddingHorizontal: 16,
-    paddingTop: 6,
-  },
-
-  // Album Card
+  listContent: { paddingHorizontal: 16, paddingTop: 6 },
   card: {
     flexDirection: "row",
     alignItems: "center",
@@ -852,15 +882,8 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 2,
   },
-  thumbnailWrap: {
-    width: 90,
-    height: 82,
-    position: "relative",
-  },
-  thumbnail: {
-    width: "100%",
-    height: "100%",
-  },
+  thumbnailWrap: { width: 90, height: 82, position: "relative" },
+  thumbnail: { width: "100%", height: "100%" },
   thumbnailGradient: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: "rgba(0,0,0,0.14)",
@@ -877,16 +900,8 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     borderRadius: 6,
   },
-  countBadgeText: {
-    color: COLORS.white,
-    fontSize: 10,
-    fontWeight: "700",
-  },
-  cardInfo: {
-    flex: 1,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-  },
+  countBadgeText: { color: COLORS.white, fontSize: 10, fontWeight: "700" },
+  cardInfo: { flex: 1, paddingHorizontal: 14, paddingVertical: 12 },
   cardTitle: {
     fontSize: 14,
     fontWeight: "700",
@@ -905,21 +920,9 @@ const styles = StyleSheet.create({
     borderRadius: 3,
     backgroundColor: COLORS.accent,
   },
-  cardMetaText: {
-    fontSize: 12,
-    color: COLORS.textMuted,
-    fontWeight: "500",
-  },
-  cardArrow: {
-    paddingRight: 14,
-  },
-
-  // Empty State
-  emptyWrap: {
-    alignItems: "center",
-    paddingTop: 80,
-    paddingHorizontal: 32,
-  },
+  cardMetaText: { fontSize: 12, color: COLORS.textMuted, fontWeight: "500" },
+  cardArrow: { paddingRight: 14 },
+  emptyWrap: { alignItems: "center", paddingTop: 80, paddingHorizontal: 32 },
   emptyIcon: {
     width: 72,
     height: 72,
@@ -950,13 +953,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.accentSoft,
     borderRadius: 12,
   },
-  emptyBtnText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: COLORS.accent,
-  },
-
-  // Footer
+  emptyBtnText: { fontSize: 14, fontWeight: "600", color: COLORS.accent },
   footerLoader: {
     flexDirection: "row",
     alignItems: "center",
@@ -969,15 +966,11 @@ const styles = StyleSheet.create({
     color: COLORS.textMuted,
     fontWeight: "500",
   },
-
-  // Modal backdrop
   modalBackdrop: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.45)",
     justifyContent: "flex-start",
   },
-
-  // Search Modal
   searchSheet: {
     backgroundColor: COLORS.surface,
     paddingBottom: 16,
@@ -1024,24 +1017,15 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginBottom: 4,
   },
-  suggestionSection: {
-    marginTop: 4,
-  },
+  suggestionSection: { marginTop: 4 },
   suggestionRow: {
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 13,
   },
-  suggestionText: {
-    flex: 1,
-    fontSize: 15,
-    color: COLORS.text,
-  },
-  suggestionHighlight: {
-    fontWeight: "700",
-    color: COLORS.text,
-  },
+  suggestionText: { flex: 1, fontSize: 15, color: COLORS.text },
+  suggestionHighlight: { fontWeight: "700", color: COLORS.text },
   searchDirectRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -1049,13 +1033,8 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     marginTop: 4,
   },
-  searchDirectText: {
-    fontSize: 15,
-    color: COLORS.text,
-  },
-  recentSection: {
-    paddingTop: 8,
-  },
+  searchDirectText: { fontSize: 15, color: COLORS.text },
+  recentSection: { paddingTop: 8 },
   recentHeader: {
     flexDirection: "row",
     alignItems: "center",
@@ -1070,27 +1049,15 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     letterSpacing: 0.8,
   },
-  clearAllText: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: COLORS.accent,
-  },
+  clearAllText: { fontSize: 13, fontWeight: "600", color: COLORS.accent },
   recentRow: {
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 13,
   },
-  recentIconWrap: {
-    marginRight: 14,
-  },
-  recentText: {
-    flex: 1,
-    fontSize: 15,
-    color: COLORS.text,
-  },
-
-  // Sort Sheet
+  recentIconWrap: { marginRight: 14 },
+  recentText: { flex: 1, fontSize: 15, color: COLORS.text },
   sortSheet: {
     position: "absolute",
     bottom: 0,
@@ -1130,9 +1097,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     marginBottom: 4,
   },
-  sortOptionActive: {
-    backgroundColor: COLORS.accentSoft,
-  },
+  sortOptionActive: { backgroundColor: COLORS.accentSoft },
   sortIconWrap: {
     width: 36,
     height: 36,
@@ -1142,18 +1107,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginRight: 14,
   },
-  sortIconWrapActive: {
-    backgroundColor: COLORS.accent,
-  },
-  sortLabel: {
-    fontSize: 15,
-    fontWeight: "500",
-    color: COLORS.text,
-  },
-  sortLabelActive: {
-    fontWeight: "700",
-    color: COLORS.accent,
-  },
+  sortIconWrapActive: { backgroundColor: COLORS.accent },
+  sortLabel: { fontSize: 15, fontWeight: "500", color: COLORS.text },
+  sortLabelActive: { fontWeight: "700", color: COLORS.accent },
 });
 
 export default PhotosAlbum;
