@@ -2,11 +2,14 @@ import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import { Modal, Pressable, ScrollView, Text, TouchableOpacity, View } from "react-native";
 
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
 import { useLanguage } from "@/context/LanguageContext";
 import i18n, { APP_LANGUAGES } from "@/i18n";
 
 const LanguageSwitcher = () => {
   const [visible, setVisible] = useState(false);
+  const insets = useSafeAreaInsets();
 
   const { language, setLanguage } = useLanguage();
 
@@ -49,6 +52,7 @@ const LanguageSwitcher = () => {
             style={{
               backgroundColor: "#fff",
               padding: 20,
+              paddingBottom: 20 + insets.bottom,
               borderTopLeftRadius: 20,
               borderTopRightRadius: 20,
             }}

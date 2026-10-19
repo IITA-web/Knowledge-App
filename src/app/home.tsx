@@ -23,7 +23,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import FeaturedNews from "../components/FeaturedNews";
 import Radio from "../components/RadioScreen";
 import { baseStyle } from "../utils/BaseStyle";
@@ -201,6 +201,7 @@ const HomeScreen = () => {
   const [toggleFeaturedNews, setToggleFeaturedNews] = useState(false);
 
   /* MODALS */
+  const insets = useSafeAreaInsets(); // keeps the language sheet above the system nav bar
   const [langModalVisible, setLangModalVisible] = useState(false);
   const [contactModal, setContactModal] = useState(false);
 
@@ -927,6 +928,7 @@ const HomeScreen = () => {
             style={{
               backgroundColor: "#fff",
               padding: 20,
+              paddingBottom: 20 + insets.bottom,
               borderTopLeftRadius: 20,
               borderTopRightRadius: 20,
             }}
