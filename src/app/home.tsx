@@ -1,7 +1,9 @@
 import { useLanguage } from "@/context/LanguageContext";
-import i18n from "@/i18n";
+import CropIcon from "@/components/CropIcon";
+import i18n, { APP_LANGUAGES } from "@/i18n";
 import { Ionicons } from "@expo/vector-icons";
 import axios from "axios";
+import Constants from "expo-constants";
 import { useNavigation, useRouter } from "expo-router";
 import moment from "moment";
 import React, { useEffect, useState } from "react";
@@ -10,6 +12,7 @@ import {
   Alert,
   Image,
   KeyboardAvoidingView,
+  Linking,
   Modal,
   Platform,
   Pressable,
@@ -27,6 +30,9 @@ import { baseStyle } from "../utils/BaseStyle";
 import { screenWidth, status_bar_height } from "../utils/Dimension";
 import axiosService from "../utils/lib/axiosService";
 import { Service } from "../utils/service";
+
+// Contact & feedback messages go here (the same inbox the old feedback backend used).
+const CONTACT_EMAIL = "iita.comms@gmail.com";
 
 const pub = require("../../assets/images/books.png");
 const pubIcon = Image.resolveAssetSource(pub).uri;
@@ -100,7 +106,7 @@ export const MANDATE_CROPS = [
   {
     key: "coffee",
     labelKey: "coffee",
-    emoji: "🍒",
+    emoji: "", // drawn by CropIcon (no coffee bean emoji exists)
     bg: "#C62828",
   },
 ];
@@ -168,16 +174,13 @@ export const navItems = [
     emoji: "🌤️",
     bg: "#FFC107",
   },
-];
 
-const LANGUAGES = [
-  { code: "en", label: "English" },
-  { code: "yo", label: "Yorùbá" },
-  { code: "ha", label: "Hausa" },
-  { code: "ig", label: "Igbo" },
-  { code: "fr", label: "Français" },
-  { code: "sw", label: "Kiswahili" },
-  { code: "pt", label: "Português" },
+  {
+    titleKey: "aiToolsItem",
+    navigationItem: "aitools",
+    emoji: "🧠",
+    bg: "#D85016",
+  },
 ];
 
 const axiosIreportService = axios.create({
@@ -213,7 +216,6 @@ const HomeScreen = () => {
     message: "",
   });
 
-  const [sendingFeedback, setSendingFeedback] = useState(false);
 
   const smallScreen = screenWidth <= 300;
   const resourceWidth = smallScreen ? screenWidth / 3.5 : screenWidth / 4.5;
@@ -347,9 +349,8 @@ const HomeScreen = () => {
   //   }
   // };
 
+  // Opens the user's email app with the message filled in (no backend needed).
   const handleContactSubmit = async () => {
-    if (sendingFeedback) return;
-
     if (!form.type) {
       return Alert.alert("Missing field", "Please select a type.");
     }
@@ -370,48 +371,29 @@ const HomeScreen = () => {
       return Alert.alert("Missing field", "Please enter a message.");
     }
 
-    setSendingFeedback(true);
+    const type = i18n.t(form.type, { locale: "en" });
+    const subject = `[IITA Knowledge App · ${type}] ${form.subject.trim()}`;
+    const body = [
+      `Type: ${type}`,
+      `Name: ${form.name.trim()}`,
+      `Address: ${form.address.trim()}`,
+      "",
+      form.message.trim(),
+      "",
+      "—",
+      `Sent from the IITA Knowledge App ${Constants.expoConfig?.version ?? ""} (${Platform.OS})`,
+    ].join("\n");
+
+    const url = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 
     try {
-      const response = await fetch(
-        "https://taat-backend.onrender.com/v1/api/knowledge-app/",
-        // "http://10.114.49.129:4000/v1/api/knowledge-app",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            type: form.type,
-            name: form.name,
-            address: form.address,
-            subject: form.subject,
-            message: form.message,
-          }),
-        }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        throw new Error(data.message || "Failed to send message");
-      }
-
-      Alert.alert("Success", data.message || "Message sent successfully");
-
-      setForm({
-        type: "feedback",
-        name: "",
-        address: "",
-        subject: "",
-        message: "",
-      });
-
+      await Linking.openURL(url);
       setContactModal(false);
-    } catch (error: any) {
-      Alert.alert("Error", error?.message || "Failed to send message");
-    } finally {
-      setSendingFeedback(false);
+    } catch {
+      Alert.alert(
+        i18n.t("noEmailApp"),
+        i18n.t("noEmailAppText", { email: CONTACT_EMAIL })
+      );
     }
   };
 
@@ -671,14 +653,14 @@ const HomeScreen = () => {
                 style={{
                   flexDirection: "row",
                   flexWrap: "wrap",
-                  justifyContent: "space-between",
+                  justifyContent: "flex-start",
                 }}
               >
                 {navItems.map((item, index) => (
                   <TouchableOpacity
                     key={index}
                     style={{
-                      width: "23%",
+                      width: "25%",
                       alignItems: "center",
                       marginVertical: 12,
                     }}
@@ -772,7 +754,7 @@ const HomeScreen = () => {
                         borderRadius: 16,
                       }}
                     >
-                      <Text style={{ fontSize: 22 }}>{crop.emoji}</Text>
+                      <CropIcon crop={crop} size={22} />
                     </View>
 
                     <Text
@@ -953,25 +935,27 @@ const HomeScreen = () => {
               {language && i18n.t("selectLanguage")}
             </Text>
 
-            {LANGUAGES.map((l) => (
-              <TouchableOpacity
-                key={l.code}
-                onPress={() => {
-                  setLanguage(l.code);
-                  setLangModalVisible(false);
-                }}
-                style={{
-                  paddingVertical: 12,
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                }}
-              >
-                <Text>{l.label}</Text>
-                {language === l.code && (
-                  <Ionicons name="checkmark-circle" size={20} color="#F26522" />
-                )}
-              </TouchableOpacity>
-            ))}
+            <ScrollView style={{ maxHeight: 440 }}>
+              {APP_LANGUAGES.map((l) => (
+                <TouchableOpacity
+                  key={l.code}
+                  onPress={() => {
+                    setLanguage(l.code);
+                    setLangModalVisible(false);
+                  }}
+                  style={{
+                    paddingVertical: 12,
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <Text>{l.label}</Text>
+                  {language === l.code && (
+                    <Ionicons name="checkmark-circle" size={20} color="#F26522" />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
           </View>
         </Pressable>
       </Modal>
@@ -1085,12 +1069,23 @@ const HomeScreen = () => {
                   alignItems: "center",
                 }}
               >
-                <Text style={{ color: "#fff", fontWeight: "700" }}>
-                  {sendingFeedback
-                    ? i18n.t("cropDetail.loading")
-                    : i18n.t("send")}
-                </Text>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                  <Ionicons name="mail-outline" size={18} color="#fff" />
+                  <Text style={{ color: "#fff", fontWeight: "700" }}>
+                    {i18n.t("send")}
+                  </Text>
+                </View>
               </TouchableOpacity>
+              <Text
+                style={{
+                  color: "#6B7280",
+                  fontSize: 12,
+                  textAlign: "center",
+                  marginTop: 8,
+                }}
+              >
+                {language && i18n.t("contactEmailHint", { email: CONTACT_EMAIL })}
+              </Text>
             </View>
           </View>
         </KeyboardAvoidingView>

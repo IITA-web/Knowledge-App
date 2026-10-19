@@ -4,7 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Location from "expo-location";
-import { useNavigation } from "expo-router";
+import { useNavigation, useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -436,6 +436,7 @@ export default function FarmWeatherScreen() {
         >
           <WeatherHero location={activeLoc} weather={weather} />
           <FarmingAdvice weather={weather} />
+          <ClimateRiskLink location={activeLoc} />
           <HourlyHumidity weather={weather} />
           <WeekForecast weather={weather} />
         </Animated.ScrollView>
@@ -533,6 +534,39 @@ function FarmingAdvice({ weather }: any) {
         </Text>
       </View>
     </View>
+  );
+}
+
+// ─── Climate Risk link (AI API) ───────────────────────────────────────────────
+function ClimateRiskLink({ location }: any) {
+  const router = useRouter();
+  const { language } = useLanguage();
+  return (
+    <TouchableOpacity
+      activeOpacity={0.8}
+      style={[s.adviceCard, { borderColor: T.accentDimBorder }]}
+      onPress={() =>
+        router.push({
+          pathname: "/climaterisk",
+          params: {
+            lat: String(location.lat),
+            lon: String(location.lon),
+            locName: location.name,
+          },
+        })
+      }
+    >
+      <Text style={{ fontSize: 22 }}>🌦</Text>
+      <View style={{ flex: 1 }}>
+        <Text style={[s.adviceTitle, { color: T.accent }]}>
+          {language ? i18n.t("climate.entryTitle") : "Climate risk for your crops"}
+        </Text>
+        <Text style={s.adviceText}>
+          {language ? i18n.t("climate.entrySub") : ""}
+        </Text>
+      </View>
+      <Ionicons name="chevron-forward" size={18} color={T.accent} style={{ alignSelf: "center" }} />
+    </TouchableOpacity>
   );
 }
 

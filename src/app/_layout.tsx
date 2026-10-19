@@ -254,6 +254,83 @@ export default function RootLayout() {
               }}
             />
             <Stack.Screen
+              name="climaterisk"
+              options={{
+                title: "Climate Risk",
+                headerShown: false,
+              }}
+            />
+            <Stack.Screen
+              name="aitools"
+              options={{
+                title: "AI Tools",
+                headerShown: false,
+              }}
+            />
+            <Stack.Screen
+              name="cropdiagnosis"
+              options={{
+                title: "Crop Diagnosis",
+                headerShown: false,
+              }}
+            />
+            <Stack.Screen
+              name="assistant"
+              options={{
+                title: "Ask IITA",
+                headerShown: false,
+              }}
+            />
+            <Stack.Screen
+              name="yieldprediction"
+              options={{
+                title: "Yield Prediction",
+                headerShown: false,
+              }}
+            />
+            <Stack.Screen
+              name="soiladvice"
+              options={{
+                title: "Soil Advice",
+                headerShown: false,
+              }}
+            />
+            <Stack.Screen
+              name="aisearch"
+              options={{
+                title: "Smart Search",
+                headerShown: false,
+              }}
+            />
+            <Stack.Screen
+              name="translate"
+              options={{
+                title: "Translate",
+                headerShown: false,
+              }}
+            />
+            <Stack.Screen
+              name="radiotranscribe"
+              options={{
+                title: "Radio Transcription",
+                headerShown: false,
+              }}
+            />
+            <Stack.Screen
+              name="breeding"
+              options={{
+                title: "Breeding Data",
+                headerShown: false,
+              }}
+            />
+            <Stack.Screen
+              name="marketprices"
+              options={{
+                title: "Market Prices",
+                headerShown: false,
+              }}
+            />
+            <Stack.Screen
               name="cropdetails"
               options={{
                 title: "Crop Details",

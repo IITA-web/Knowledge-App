@@ -42,7 +42,7 @@
       ],
       "package": "com.iita.knowledgeapp",
       "predictiveBackGestureEnabled": false,
-      "versionCode": 72
+      "versionCode": 73
     },
     "web": {
       "output": "static",
@@ -73,7 +73,14 @@
       "expo-web-browser",
       "@config-plugins/react-native-blob-util",
       "expo-sharing",
-      "expo-localization"
+      "expo-localization",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow IITA Knowledge to use your photos to diagnose crop diseases.",
+          "cameraPermission": "Allow IITA Knowledge to use the camera to photograph crop leaves for disease diagnosis."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

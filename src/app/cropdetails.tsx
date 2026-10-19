@@ -2332,6 +2332,7 @@
 //   closeTextBtnText: { color: MUTED, fontWeight: "600", fontSize: 13 },
 // });
 
+import CropIcon from "@/components/CropIcon";
 import { useLanguage } from "@/context/LanguageContext";
 import i18n from "@/i18n";
 import { Ionicons } from "@expo/vector-icons";
@@ -2692,8 +2693,6 @@ const NewsCard = ({ item, onPress, cropBg, index }: any) => {
             backgroundColor: CARD_BG,
             borderRadius: 16,
             overflow: "hidden",
-            borderWidth: 1,
-            borderColor: BORDER,
             shadowColor: "#000",
             shadowOpacity: 0.05,
             shadowRadius: 8,
@@ -2701,7 +2700,6 @@ const NewsCard = ({ item, onPress, cropBg, index }: any) => {
             elevation: 2,
           }}
         >
-          <View style={{ width: 4, backgroundColor: cropBg }} />
           <View style={{ width: 96, height: 96, overflow: "hidden" }}>
             {img ? (
               <FadeImage uri={img} style={{ width: 96, height: 96 }} />
@@ -2797,8 +2795,6 @@ const PublicationCard = ({ item, onPress, cropBg, index }: any) => {
               backgroundColor: CARD_BG,
               borderRadius: 16,
               overflow: "hidden",
-              borderWidth: 1,
-              borderColor: BORDER,
               shadowColor: "#000",
               shadowOpacity: 0.05,
               shadowRadius: 8,
@@ -3091,8 +3087,6 @@ const DigitalToolCard = ({ item, onPress, cropBg, index }: any) => {
             backgroundColor: CARD_BG,
             borderRadius: 16,
             overflow: "hidden",
-            borderWidth: 1,
-            borderColor: BORDER,
             padding: 14,
             flexDirection: "row",
             alignItems: "center",
@@ -3221,8 +3215,6 @@ const EventCard = ({ item, onPress, cropBg, index }: any) => {
             backgroundColor: CARD_BG,
             borderRadius: 20,
             overflow: "hidden",
-            borderWidth: 1,
-            borderColor: BORDER,
             shadowColor: "#000",
             shadowOpacity: 0.07,
             shadowRadius: 12,
@@ -3406,8 +3398,6 @@ const ProjectCard = ({ item, onPress, cropBg, index }: any) => {
             backgroundColor: CARD_BG,
             borderRadius: 16,
             overflow: "hidden",
-            borderWidth: 1,
-            borderColor: BORDER,
             shadowColor: "#000",
             shadowOpacity: 0.05,
             shadowRadius: 8,
@@ -4092,7 +4082,11 @@ const CropDetailScreen = () => {
             marginBottom: 14,
           }}
         >
-          <Text style={{ fontSize: 52, lineHeight: 60 }}>{cropEmoji}</Text>
+          {cropKey === "coffee" ? (
+            <CropIcon crop={{ key: "coffee" }} size={52} />
+          ) : (
+            <Text style={{ fontSize: 52, lineHeight: 60 }}>{cropEmoji}</Text>
+          )}
         </View>
         <Text
           style={[
@@ -4128,6 +4122,31 @@ const CropDetailScreen = () => {
             {language && i18n.t("cropDetail.mandateCropBadge")}
           </Text>
         </View>
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={() =>
+            router.push({
+              pathname: "/climaterisk",
+              params: { cropKey: String(cropKey) },
+            })
+          }
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 6,
+            marginTop: 12,
+            backgroundColor: "#fff",
+            borderRadius: 100,
+            paddingHorizontal: 16,
+            paddingVertical: 8,
+          }}
+        >
+          <Text style={{ fontSize: 14 }}>🌦</Text>
+          <Text style={{ color: "#2C1A10", fontSize: 13, fontWeight: "800" }}>
+            {language && i18n.t("climate.cropButton")}
+          </Text>
+          <Ionicons name="chevron-forward" size={14} color="#2C1A10" />
+        </TouchableOpacity>
       </Animated.View>
 
       {/* Quick-nav strip */}
@@ -4413,8 +4432,6 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.surface,
     borderRadius: 16,
     overflow: "hidden",
-    borderWidth: 1,
-    borderColor: COLORS.border,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,

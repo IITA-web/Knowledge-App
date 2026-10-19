@@ -1,19 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
-import { Modal, Pressable, Text, TouchableOpacity, View } from "react-native";
+import { Modal, Pressable, ScrollView, Text, TouchableOpacity, View } from "react-native";
 
 import { useLanguage } from "@/context/LanguageContext";
-import i18n from "@/i18n";
-
-const LANGUAGES = [
-  { code: "en", label: "English" },
-  { code: "yo", label: "Yorùbá" },
-  { code: "ha", label: "Hausa" },
-  { code: "ig", label: "Igbo" },
-  { code: "fr", label: "Français" },
-  { code: "sw", label: "Kiswahili" },
-  { code: "pt", label: "Português" },
-];
+import i18n, { APP_LANGUAGES } from "@/i18n";
 
 const LanguageSwitcher = () => {
   const [visible, setVisible] = useState(false);
@@ -73,29 +63,31 @@ const LanguageSwitcher = () => {
               {i18n.t("selectLanguage")}
             </Text>
 
-            {LANGUAGES.map((l) => (
-              <TouchableOpacity
-                key={l.code}
-                onPress={() => {
-                  setLanguage(l.code);
-                  setVisible(false);
-                }}
-                style={{
-                  paddingVertical: 14,
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <Text>{l.label}</Text>
+            <ScrollView style={{ maxHeight: 440 }}>
+              {APP_LANGUAGES.map((l) => (
+                <TouchableOpacity
+                  key={l.code}
+                  onPress={() => {
+                    setLanguage(l.code);
+                    setVisible(false);
+                  }}
+                  style={{
+                    paddingVertical: 14,
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <Text>{l.label}</Text>
 
-                {language === l.code ? (
-                  <Ionicons name="radio-button-on" size={22} color="#F26522" />
-                ) : (
-                  <Ionicons name="radio-button-off" size={22} color="#999" />
-                )}
-              </TouchableOpacity>
-            ))}
+                  {language === l.code ? (
+                    <Ionicons name="radio-button-on" size={22} color="#F26522" />
+                  ) : (
+                    <Ionicons name="radio-button-off" size={22} color="#999" />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
           </View>
         </Pressable>
       </Modal>
